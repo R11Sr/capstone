@@ -1,0 +1,99 @@
+concurrency avoidance index(CAI)
+
+Xfer Algorithm
+
+
+repeat for all sessions:
+
+place session according to the LEcturers pref on TT
+	if the session is placed at the same time of another check to ensure CAI constraint observed
+		if violatation move session within lecture preference
+		if lecture pref must be violated do so in 1 hr increments and increment violation
+	if the session is placed at the same time of another check to ensure clash constraint observed
+		if violatation move session within lecture preference
+			when moved check CAI constraint if violated move again
+		if lecture pref must be violated do so in 1 hr increments and increment violation
+		
+Optimise spatial distribution:
+Proximity Analysis(PA)
+for each session:
+	based on the constraint set of the percentage of students taking follow up class
+	if an available room conforms best to proximity analysis constraint move session to that room 
+	if room is unavailable
+		check if session can be moved to another room that will conform to PA constraint & doesnt violate previous constraint
+			if move is valid move the 2 sessions
+	if room that conforms the best is not available then incrementally increase search radius and conduct PA
+
+	if no room can improve PA leave session at current location
+
+
+****ASK COORE*****
+Time Utilisation (TU):
+	examine each of the students time table 
+			
+
+		
+
+concurrencyAvoidance:
+	concurrency takes in to consideration the year of the students and the courses that they are registered for
+
+	For each course examine how many students do that particular course along with other courses that they
+	are enrolled in. 
+
+	Use Pearson's correlation coefficient to produce CAI
+
+	
+
+
+
+- Placement (filter approach possible)
+    + concurrency
+    + clashes
+    + lecture preference
+
+Explore  order 
+    + Gene to determine order of exe (3 bits)
+    + 
+Explore method (tolerance chromosome) comfort constraint
+    + how soon a strategy get exhausted and places a session at the back of the queue
+    + every moves add to a score each movement is weighted accordingly(effort / energy) 
+- rearrangement
+
+
+
+FIFO
+create_time_table()
+get_all_sessions()
+
+place all sessions in FIFO queue
+pop session 
+Attempt to place sesion according to either lazy or eager Placement (use bit string)
+	this could be there is a set number of tries(# of times it can be placed in the queue)
+
+if unable to place accornding explorw order(as stated above) and/or out of energy
+	refill energy and enqueue 
+
+if unable to enqueue 
+	palce to receive min violatation
+
+
+PRIORITY QUEUE
+create_time_table()
+get_all_sessions()
+
+place all sessions in priority queue
+
+reroder queue according to the priority 1st then according to how sessions were added
+
+pop session 
+Attempt to place sesion according to either lazy or eager Placement (use bit string)
+	this could be there is a set number of tries(# of times it can be placed in the queue)
+
+if unable to place accornding explore order(as stated above) and/or out of energy
+	refill energy and enqueue
+
+if unable to enqueue 
+	palce to receive min violatation
+
+
+
