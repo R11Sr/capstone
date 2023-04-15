@@ -157,10 +157,16 @@ class Session():
     def getPriority(self)->int:
         return self.priority
     
+    def setTimeSpan(self,span: int):
+        self.timeSpan = span
+
+    def getTimeSpan(self):
+        return self.timeSpan
+    
     def refill(self):
         self.currentLevel = self.energyCapacity
 
-    def energyAvailable(self)->bool:
+    def isEnergyAvailable(self)->bool:
          if self.currentLevel >0:
             return True
          return False
