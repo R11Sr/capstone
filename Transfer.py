@@ -3,6 +3,13 @@ from dataclasses import dataclass, field
 from typing import Any
 from Course import *
 
+
+"""Possible things for UI
+max requeue attempts
+
+"""
+
+
 class Transfer():
     def __init__(self,geneotype:str,courseAndSessionListing: list) -> None:
         self.fifoqueue = None
@@ -13,6 +20,7 @@ class Transfer():
         self.clashGenone = None
         self.roomProximityGenome = None
         self.CAIgenome = None
+        self.CAIdecimal = None
         self.timeUtilisationGenome = None
         self.placementUrgency = None # eager or lazy placement
         self.MAXIMUM_REQUEUE_ATTEMPTS = None
@@ -32,7 +40,9 @@ class Transfer():
         self.lecturePrefGeneome = self.geneotype[:3]
         self.clashGenone = self.geneotype[3:15]
         self.roomProximityGenome = self.geneotype[15:18]
+        #CAI,16 bit gene sequence interpreted as  sign(0)0.0000 0000 0000 00
         self.CAIgenome = self.geneotype[18:34]
+        self.setDecimalCAI()
         self.placementPlan=self.geneotype[34:37]
         self.placementUrgency= self.geneotype[37:42]
         self.setMaxRequeueAttempts()
@@ -59,6 +69,24 @@ class Transfer():
             totalReQattempts =  int(self.placementUrgency,2) *5 
             self.MAXIMUM_REQUEUE_ATTEMPTS = totalReQattempts
 
+    def getMaxRequeueAttempts(self) -> int:
+        return self.MAXIMUM_REQUEUE_ATTEMPTS
+
+
+    
+    def setDecimalCAI(self):
+        gene = self.CAIgenome
+        def parse_bin(s):
+            return int(s[1:], 2) / 2.**(len(s) - 1)
+
+        if gene[0]:
+             self.setDecimalCAI =  float(f'{gene[1]}') + parse_bin(fraction)
+        else:
+            self.setDecimalCAI = - float(f'{gene[1]}') - parse_bin(fraction)
+        
+
+
+    
     def isFIFOQueueAvailable(self)-> bool:
         if self.fifoqueue:
             return True
@@ -91,8 +119,18 @@ class Transfer():
     #     pass
 
     # This method may not be needed. But just in case. It is there as a wrapper class
-    def enqueuePrioity(self) ->None:
-        pass
+    def enqueuePriority(self,priority: int, session: Session) ->None:
+        if self.isPriorityQueueAvailable():
+            self.priorityqueue.put(priority,session)
+        else:
+            raise Exception("The Queue must exist before elements can be added to it.")
+
+    def enqueueFIFO(self,session: Session) -> None:
+        if self.isFIFOQueueAvailable():
+            self.fifoqueue.put(session)
+        else:
+            raise Exception("The Queue must exist before elements can be added to it.")
+
 
     def FIFOrequeue(self,session: Session) ->None:
         if self.FIFOQueueAvailable():
@@ -154,21 +192,53 @@ class Transfer():
 
         self.setTimeTable(self,timeTable)
     
-    def checkCAI(self):
+    def inCAI(self,session: Session, location: int)-> bool:
+        const =  self.CAIgenome
+    def inLecturerPref(self,session: Session, location: int)-> bool:
         pass
-    def checkLecturerPref(self):
+    def inClashConstraint(self,session: Session, location: int)-> bool:
         pass
-    def checkClashConstraint(self):
+    def inRoomProximity(self, session: Session, location: int) -> bool:
         pass
 
-    def filter(self):
+    def CAI(self,session: Session, location: int)-> float:
         pass
+    def LecturerPref(self,session: Session, location: int)-> float:
+        pass
+    def ClashConstraint(self,session: Session, location: int)-> float:
+        pass
+    def RoomProximity(self, session: Session, location: int) -> float:
+        pass
+
+    def filter(self,session: Session) -> list:
+
+        placementPoints=[]
+        for spot in range(0,self.timeTable.length):
+            '''available location should be a list [(score: float,location: list)]
+                eg. for a session [(5.322,6),(7.456,8)]'''
+            
+            if self.isValid(session.getTimeSpan(),spot):
+                cai = self.CAI(session,spot)
+                LecturerPref = self.LecturerPref(session,spot)
+                clash = self.clash(session,spot)
+                RoomProximity = self.RoomProximity(session,spot)
+
+                total = cai + LecturerPref + clash + RoomProximity
+
+                placementPoints.append((total,spot))      
+
+        return placementPoints
+
+
 
     def placeSession(self,session: Session,location= int) -> bool:
         length = session.getTimeSpan()
         
         if self.isValid(length,location):
-            for time in range(0,length):                
+            session.useEnergy()
+            for time in range(0,length): 
+                '''Add the price paid in this session'''  
+                             
                 self.timeTable[location + 5* time].append(session)
         else:
             session.useEnergy()
@@ -196,13 +266,74 @@ class Transfer():
         else:
             """ The placement gene is invalid and this time table should be discarded"""
 
-        
+
+    def checkAllHardConstraint(self,session: Session, spot: int) -> list:
+            cai = self.inCAI(session,spot)
+            clash = self.inclash(session,spot)
+
+            return [cai,clash]
             
         
     def PriorityQStraightOrder(self) -> list:
-        pass
+        self.buildPriorityQueue()
+
+        if self.isPriorityQueueAvailable():
+            for session in self.allSessions:
+                self.enqueuePriority(self,session.getPriority(),session)
+        
+        while not self.priorityqueue.empty():
+            session = self.priorityqueue.get()
+
+            '''available location should be a list [(score: int,location: list)]
+                eg. for 2 hr session [(5,[6,11]),(7,[8,13])]'''
+            allLocations = self.filter(session,self.getTimeTable())
+            val = lambda tup: tup[0]
+            allLocations.sort(key=val)
+
+            if allLocations:
+                location = allLocations.pop()
+                if all(self.checkAllHardConstraint(session,location)): 
+                    self.placeSession(session,location)
+                elif session.getAttempts() >= self.getMaxRequeueAttempts:
+                    self.placeSession(session,location)
+                else:
+                    session.useAttempt()
+                    self.enqueuePriority(self,session.getPriority(),session)
+
+        return self.priorityqueue
+
+
+
+            
+
+            
     def PriorityQReverseOrder(self) -> list:
-        pass
+        self.buildPriorityQueue()
+
+        if self.isPriorityQueueAvailable():
+            for session in self.allSessions:
+                self.enqueuePriority(self,session.getPriority(),session)
+        
+        while not self.priorityqueue.empty():
+            session = self.priorityqueue.get()
+
+            '''available location should be a list [(score: int,location: list)]
+                eg. for 2 hr session [(5,[6,11]),(7,[8,13])]'''
+            allLocations = self.filter(session,self.getTimeTable())
+            val = lambda tup: tup[0]
+            allLocations.sort(key=val)
+
+            if allLocations:
+                location = allLocations.pop()
+                if all(self.checkAllHardConstraint(session,location)): 
+                    self.placeSession(session,location)
+                elif session.getAttempts() >= self.getMaxRequeueAttempts:
+                    self.placeSession(session,location)
+                else:
+                    session.useAttempt()
+                    self.enqueuePriority(self,session.getPriority(),session)
+
+        return self.priorityqueue
     def FIFOQStraightOrder(self )-> list:
         pass
     def FIFOQReveseOrder(self) -> list:

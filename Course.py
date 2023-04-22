@@ -183,6 +183,9 @@ class Session():
     def useAttempt(self):
         self.placementAttempts +=1
     
+    def getAttempts(self) -> int:
+        return self.placementAttempts
+    
     def resetAttempt(self):
         self.placementAttempts = 0
         
