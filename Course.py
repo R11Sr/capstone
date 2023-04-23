@@ -78,12 +78,14 @@ class Course:
     
 
 class Session():
-    def __init__(self, facilitator: str,type: str,capacity: int) -> None:
+    def __init__(self, facilitator: str,type: str,courseCode: str,capacity: int) -> None:
         #the person who is in charge of administering this session
         self.facilitator = facilitator
 
         #course title
         self.course = None
+
+        self.courseCode = courseCode
 
         #the day of this session
         self.day = None
@@ -94,8 +96,6 @@ class Session():
         #the type of session, must be listed in the component of the course
         self.type = type
         
-        #the amount of students registered for a course
-        self.registered = 0
 
         #The maximum capacity that this session can accomodate given constraints eg. physical lab components
         #for a lab session
@@ -118,9 +118,6 @@ class Session():
         #priority, to be used for the priority queue
         self.priority = None
 
-        #copy of the course registration Data
-        self.regdata = None
-
         #energy that is used to place course on the time table
         self.energyAllocation = {}
         self.energyAllocation['lecture'] = 25
@@ -139,17 +136,17 @@ class Session():
         if self.course:
             return self.course
         return None
+    def getcourseCode(self) -> str:
+        return self.courseCode
     
+
     def getType(self) ->str:
         return self.type
     
     def setRegistrationData(self,data: dict):
         self.regdata = data
 
-    def getRegistrationData(self) ->dict:
-        if self.regdata:
-            return self.regdata
-        return None
+
     
     def setPriority(self,pri: int):
         self.priority = pri

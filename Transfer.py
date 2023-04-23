@@ -1,4 +1,5 @@
 import queue
+import scipy.stats as stats
 from dataclasses import dataclass, field
 from typing import Any
 from Course import *
@@ -42,6 +43,7 @@ class Transfer():
         self.roomProximityGenome = self.geneotype[15:18]
         #CAI,16 bit gene sequence interpreted as  sign(0)0.0000 0000 0000 00
         self.CAIgenome = self.geneotype[18:34]
+        self.CAIconstraintDecimal = None
         self.setDecimalCAI()
         self.placementPlan=self.geneotype[34:37]
         self.placementUrgency= self.geneotype[37:42]
@@ -73,16 +75,21 @@ class Transfer():
         return self.MAXIMUM_REQUEUE_ATTEMPTS
 
 
-    
+    # This also normalises the data. In that it changes the values from the range of -1 to 1, to 0 to 2.
+    # makes it easier when running a minimising GA
     def setDecimalCAI(self):
         gene = self.CAIgenome
         def parse_bin(s):
             return int(s[1:], 2) / 2.**(len(s) - 1)
+        
+        fraction = '.' + gene[2:]
 
         if gene[0]:
-             self.setDecimalCAI =  float(f'{gene[1]}') + parse_bin(fraction)
+            _ =  float(f'{gene[1]}') + parse_bin(fraction)
+            self.CAIconstraintDecimal = 1 + _ 
+
         else:
-            self.setDecimalCAI = - float(f'{gene[1]}') - parse_bin(fraction)
+            self.CAIconstraintDecimal = - float(f'{gene[1]}') - parse_bin(fraction)
         
 
 
@@ -192,8 +199,11 @@ class Transfer():
 
         self.setTimeTable(self,timeTable)
     
-    def inCAI(self,session: Session, location: int)-> bool:
-        const =  self.CAIgenome
+    def inCAI(self,s1: Session,  s2: Session, location: int)-> bool:
+        if self.CAI(s1,s2,location) <= self.CAIconstraintDecimal:
+            return True
+        return False
+    
     def inLecturerPref(self,session: Session, location: int)-> bool:
         pass
     def inClashConstraint(self,session: Session, location: int)-> bool:
@@ -201,8 +211,22 @@ class Transfer():
     def inRoomProximity(self, session: Session, location: int) -> bool:
         pass
 
-    def CAI(self,session: Session, location: int)-> float:
-        pass
+    def CAI(self,s1: Session, s2: Session, location: int)-> float:
+        
+        c1Data = allCourses[f'{s1.getcourseCode()}']
+        c2Data = allCourses[f'{s2.getcourseCode()}']
+
+        cai = self.kendalTau(c1Data,c2Data)
+
+        return cai
+
+    def kendalTau(c1Data: dict,c2Data: dict) ->float:
+        tauList = []
+        for key in c1Data:
+            '''still incorrect the major is not taken into factor'''
+            tau, p_value = stats.kendalltau(c1Data[key],c2Data[key])
+            tauList.append(tau)
+        
     def LecturerPref(self,session: Session, location: int)-> float:
         pass
     def ClashConstraint(self,session: Session, location: int)-> float:
