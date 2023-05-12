@@ -209,14 +209,4 @@ class Room():
 
         self.title = title
         self.capacity = capacity
-        self.booked  = False
-        self.session = None
-    def book(self,session: Session):
-        if not self.session:
-            self.session = session.name
-            self.booked = True
-    
-    def isBooked(self):
-        return self.booked
-        
 
