@@ -16,6 +16,7 @@ class Course:
         self.courseCode  = courseCode
         self.lectuerName = lectuerName
         self.registrationData = {}
+        self.majors={}
 
         #components refer to the different session for the course 
         # Lectures, Seminars, Labs, Tutorials
@@ -43,6 +44,14 @@ class Course:
     def setPastResgistration(self,registrationList):
              
         self.registrationData = registrationList
+        
+        # creates a counter of the majors done each year
+        for k in self.registrationData:
+            for tuple in self.registrationData[k]:
+                if tuple[1] in self.majors:
+                    self.majors[tuple[1]] +=1
+                else:
+                    self.major[tuple[1]] = 1
 
 
         """_summary_
@@ -50,6 +59,9 @@ class Course:
         """
     def getRegistrationForYear(self,year):
         return self.registrationData[f'{year}']
+    
+    def getMajors(self) -> dict:
+        return self.majors
     
     def getTitle(self):
         return self.courseTitle 
@@ -95,6 +107,8 @@ class Session():
 
         #the type of session, must be listed in the component of the course
         self.type = type
+
+        self.name = f'{self.courseCode} - {self.type}'
         
 
         #The maximum capacity that this session can accomodate given constraints eg. physical lab components
@@ -187,9 +201,22 @@ class Session():
         self.placementAttempts = 0
         
     def __repr__(self) -> str:
-        return f"<course:{self.getCourseTitle()}, session{self.getType()}, energy Level{self.getEnergyLevel()}>"
+        return f"<name:{self.name}, session{self.getType()}, energy Level{self.getEnergyLevel()}>"
 
 
+class Room():
+    def __init__(self,title: str,capacity: int) -> None:
 
-
+        self.title = title
+        self.capacity = capacity
+        self.booked  = False
+        self.session = None
+    def book(self,session: Session):
+        if not self.session:
+            self.session = session.name
+            self.booked = True
+    
+    def isBooked(self):
+        return self.booked
+        
 

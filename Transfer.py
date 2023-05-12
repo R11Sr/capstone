@@ -1,5 +1,6 @@
 import queue
 import scipy.stats as stats
+import statistics
 from dataclasses import dataclass, field
 from typing import Any
 from Course import *
@@ -22,7 +23,7 @@ class Transfer():
         self.roomProximityGenome = None
         self.CAIgenome = None
         self.CAIdecimal = None
-        self.timeUtilisationGenome = None
+        self.timeUtilisationGenome = None """This is to remove"""
         self.placementUrgency = None # eager or lazy placement
         self.MAXIMUM_REQUEUE_ATTEMPTS = None
         self.allSessions = courseAndSessionListing
@@ -39,7 +40,7 @@ class Transfer():
  
     def setAttibutes(self):
         self.lecturePrefGeneome = self.geneotype[:3]
-        self.clashGenone = self.geneotype[3:15]
+        self.clashGenone = self.geneotype[3:15] """Will need to reduce to 4 bits """
         self.roomProximityGenome = self.geneotype[15:18]
         #CAI,16 bit gene sequence interpreted as  sign(0)0.0000 0000 0000 00
         self.CAIgenome = self.geneotype[18:34]
@@ -58,8 +59,8 @@ class Transfer():
         self.placeDict['000'] = 'PriorityQReverseOrder'
         self.placeDict['101'] = 'FIFOQStraightOrder'
         self.placeDict['001'] = 'FIFOQReveseOrder'
-        self.placeDict['110'] = 'IterativeStraightOrder'
-        self.placeDict['010'] = 'IterativeReverseOrder'
+        self.placeDict['110'] = 'IterativeStraightOrder'  #tentative
+        self.placeDict['010'] = 'IterativeReverseOrder'   #tentative
 
     """_summary_
         Responsible for setting the total number of attempts that can be made to requeue a session
@@ -68,7 +69,7 @@ class Transfer():
         value and then to increase the number of attempts its is arbitrarily multiplied by 5.
     """
     def setMaxRequeueAttempts(self) ->None:
-            totalReQattempts =  int(self.placementUrgency,2) *5 
+            totalReQattempts =  int(self.placementUrgency,2) * 5 
             self.MAXIMUM_REQUEUE_ATTEMPTS = totalReQattempts
 
     def getMaxRequeueAttempts(self) -> int:
@@ -177,6 +178,7 @@ class Transfer():
         ]
     
     """
+
     def generateTimetable(self) ->None:
         
         timeTable = [
@@ -199,8 +201,8 @@ class Transfer():
 
         self.setTimeTable(self,timeTable)
     
-    def inCAI(self,s1: Session,  s2: Session, location: int)-> bool:
-        if self.CAI(s1,s2,location) <= self.CAIconstraintDecimal:
+    def inCAI(self,s1: Session,location: int)-> bool:
+        if self.CAI(s1,location) <= self.CAIconstraintDecimal:
             return True
         return False
     
@@ -211,26 +213,135 @@ class Transfer():
     def inRoomProximity(self, session: Session, location: int) -> bool:
         pass
 
-    def CAI(self,s1: Session, s2: Session, location: int)-> float:
+    def CAI(self,s1: Session, location: int)-> float:
         
-        c1Data = allCourses[f'{s1.getcourseCode()}']
-        c2Data = allCourses[f'{s2.getcourseCode()}']
+        #if there is one or more courses in the spot
+        if self.getTimeTable[location]:
+            list_of_cai =[]
+            for existingSession in self.getTimeTable[location]:
+                #get all the majors for a selected course
 
-        cai = self.kendalTau(c1Data,c2Data)
+                """
+                CC          Majors
+                INFO2180    Computer Science, Actorial Science, Marketing
+                COMP1161    Information technology,Computer Science
+                .......     ........
+                """
+                existingSessionMajor = allcourses[f'{existingSession.getcourseCode()}'].getMajors()
+                s1Mojor = allcourses[f'{s1.getcourseCode()}'].getMajors()
 
-        return cai
+                # if there exists majors between the current courses(likely students did both) run the kendal Tau
+                for key in existingSessionMajor.keys():
+                    if key in s1Mojor:
+                        # print(key, "exists in both dictionaries")
+                        """
+                        YEAR    AMOUNT ENROLLED
+                        2017        185
+                        2016        155
+                        2015        145
+                        """
+                        c1Data = allCoursesRegistration[f'{s1.getcourseCode()}']
+                        c2Data = allCoursesRegistration[f'{existingSessionMajor.getcourseCode()}']
+                        
+                        
+                        cai = self.kendalTau(c1Data,c2Data)
+
+                        """Transform the data from the range -1 to 1, to 0 to 2.
+                        Makes it easier when running a minimizing algorithm"""
+
+                        if cai > 0:
+                            cai +=1
+                        elif cai < 0:
+                            cai = abs(cai)
+                        else:
+                            cai = 0
+                        list_of_cai.append(cai)
+                        return statistics.mean(list_of_cai)
+        else:
+            return 0
 
     def kendalTau(c1Data: dict,c2Data: dict) ->float:
         tauList = []
         for key in c1Data:
-            '''still incorrect the major is not taken into factor'''
             tau, p_value = stats.kendalltau(c1Data[key],c2Data[key])
             tauList.append(tau)
         
     def LecturerPref(self,session: Session, location: int)-> float:
+
         pass
-    def ClashConstraint(self,session: Session, location: int)-> float:
-        pass
+
+    """
+    What percentage of students of that slot hav clashes 
+    e.g. 3 sessions in slot totaling 150 students 50 have clash with 2 or more sessions in slot
+    30% clash weighting
+
+    WEIGHTING TABLE FOR % OF STUDENT CLASH
+      %             weighting
+    0  - 5          0 -0.125
+    6  - 10         0.150 - 0.250
+    11 - 15         0.275 - 0.375
+    16 - 20         0.400 - 0.500
+    21 - 25         0.525 - 0.625
+    26 - 30         0.650 - 0.750
+    31 - 35         0.775 - 0.875
+    36 - 40         0.900 - 1.000
+    > 40            2.000
+
+    
+    Weighting           Clash Meaning
+    100.00              Lecturer or room having Simultaneous classes
+    0.90                Lab to Lecture
+    0.80                Lab to Lab
+    0.70                Tutorial to Lecture
+    0.60                Lab to Tutorial
+    0.50                Seminar to Lecture
+    0.40                Seminar to Lab
+    0.30                Seminar to Tutorial
+    0.20                Tutorial to Tutorial
+    0.00                No Clashes
+
+
+    ENROLLMENT FILE(csv) FOR EACH SESSION to perform the analysis of those in this and the other sessions
+    in the spot
+    6023332
+    6293333
+    ......
+    """
+    def ClashConstraint(self,session: Session, location: int)-> list:
+        clashSet = set()
+        total = 0
+        listFacilitators =[]
+        sessionClash = 0.00
+        
+
+        for existingSession in self.getTimeTable[location]:
+            sessionEnrolled = set(registraton[f'{sessionEnrolled.name}'])
+            total += len(sessionEnrolled)
+
+            existingSessionEnrolled = set(registraton[f'{existingSession.name}'])
+            listFacilitators.append(existingSessionEnrolled.facilitator)
+            total += len(existingSessionEnrolled)
+            clashSet = clashSet | sessionEnrolled | existingSessionEnrolled
+            
+        # calculates the percentage
+        clashPercentage = (float(len(clashSet)) / float(total)) * 100
+
+        #check if a facilitator will have more than 1 session in that slot
+        if session.facilitator in listFacilitators:
+            sessionClash = 100.00 
+
+        # also check if sessions clash in rooms
+        """Rooms with special requirements are not taking into consideration at this time"""
+        
+
+
+        
+
+
+
+
+             
+             
     def RoomProximity(self, session: Session, location: int) -> float:
         pass
 
