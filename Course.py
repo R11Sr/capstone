@@ -116,7 +116,9 @@ class Session():
         self.MAXIMUM_CAPACITY = capacity
 
         #room of the session
-        self.room =  None
+        self.tentativeRoom =  None
+
+        self.approvedRoom = None
 
         #the energy level that this sesison has ie the number of attempts to be placed on time table by the
         #transfer function

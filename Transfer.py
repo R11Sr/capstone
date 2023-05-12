@@ -26,6 +26,8 @@ class Transfer():
         self.timeUtilisationGenome = None """This is to remove"""
         self.placementUrgency = None # eager or lazy placement
         self.MAXIMUM_REQUEUE_ATTEMPTS = None
+        self.CLASH_PERCENT_INDEX = 0.025
+        self.LECTURER_PREF_INDEX = 0.1
         self.allSessions = courseAndSessionListing
         self.placeDict = None
 
@@ -170,12 +172,11 @@ class Transfer():
         16    [41],[42],[43],[44],[45],
         17    [46],[47],[48],[49],[50],
         18    [51],[52],[53],[54],[55],
-        18    [56],[57],[58],[59],[60],
-        19    [61],[62],[63],[64],[65],
-        20    [66],[67],[68],[69],[70],
+        19    [56],[57],[58],[59],[60],
+        20    [61],[62],[63],[64],[65],
+        ]
             Remember to block out CLUB time 
             Remember to block out time for other DEPT
-        ]
     
     """
 
@@ -265,10 +266,120 @@ class Transfer():
         for key in c1Data:
             tau, p_value = stats.kendalltau(c1Data[key],c2Data[key])
             tauList.append(tau)
-        
-    def LecturerPref(self,session: Session, location: int)-> float:
+    
+    """Weighting table
+        Hrs outside     weight
+        1               0.1
+        2               0.2
+        3               0.3
+        4               0.4
+        5               0.5
+        6               0.6
+    
+    """
+    def LecturerPref(self,session: Session, location: list)-> float:
+        lectPrefTimes = allLecturerTimes[f'{session.facilitator}']
+        lectPrefTimes.sort()
+        timeDiff = 0
 
-        pass
+        timedict = self.makeTimedictionary()
+        timesOfSesison = []
+        for t in location:
+            timesOfSesison.append(timedict[t])
+        
+        timesOfSesison.sort()
+
+
+        if all(item in lectPrefTimes for item in timesOfSesison):
+            timeDiff = 0
+        else:
+            Lset = set(lectPrefTimes)
+            Sset = set(timesOfSesison)
+
+            diff = Lset - Sset
+
+            #if session is ahead of lect pref
+            if Sset.pop(0) > Lset.pop():
+                timeDiff = Sset.pop(0) - Lset.pop()
+            else:
+                # session behind lectPref
+                timeDiff = Lset.pop(0) - Sset.pop()
+                
+        return timeDiff * self.LECTURER_PREF_INDEX
+        
+
+
+
+    def makeTimedictionary(self) ->dict:
+        timedict = {}
+        timedict['8'] = 1
+        timedict['8'] = 2
+        timedict['8'] = 3
+        timedict['8'] = 4
+        timedict['8'] = 5
+        timedict['9'] = 6
+        timedict['9'] = 7
+        timedict['9'] = 8
+        timedict['9'] = 9
+        timedict['9'] = 10
+        timedict['10'] = 11
+        timedict['10'] = 12
+        timedict['10'] = 13
+        timedict['10'] = 14
+        timedict['10'] = 15
+        timedict['11'] = 16
+        timedict['11'] = 17
+        timedict['11'] = 18
+        timedict['11'] = 19
+        timedict['11'] = 20
+        timedict['12'] = 21
+        timedict['12'] = 22
+        timedict['12'] = 23
+        timedict['12'] = 24
+        timedict['12'] = 25
+        timedict['13'] = 26
+        timedict['13'] = 27
+        timedict['13'] = 28
+        timedict['13'] = 29
+        timedict['13'] = 30
+        timedict['14'] = 31
+        timedict['14'] = 32
+        timedict['14'] = 33
+        timedict['14'] = 34
+        timedict['14'] = 35
+        timedict['15'] = 36
+        timedict['15'] = 37
+        timedict['15'] = 38
+        timedict['15'] = 39
+        timedict['15'] = 40
+        timedict['16'] = 41
+        timedict['16'] = 42
+        timedict['16'] = 43
+        timedict['16'] = 44
+        timedict['16'] = 45
+        timedict['17'] = 46
+        timedict['17'] = 47
+        timedict['17'] = 48
+        timedict['17'] = 49
+        timedict['17'] = 50
+        timedict['18'] = 51
+        timedict['18'] = 52
+        timedict['18'] = 53
+        timedict['18'] = 54
+        timedict['18'] = 55
+        timedict['19'] = 56
+        timedict['19'] = 57
+        timedict['19'] = 58
+        timedict['19'] = 59
+        timedict['19'] = 60
+        timedict['20'] = 61
+        timedict['20'] = 62
+        timedict['20'] = 63
+        timedict['20'] = 64
+        timedict['20'] = 65
+
+        return timedict
+
 
     """
     What percentage of students of that slot hav clashes 
@@ -307,31 +418,56 @@ class Transfer():
     6293333
     ......
     """
-    def ClashConstraint(self,session: Session, location: int)-> list:
-        clashSet = set()
+    def ClashConstraint(self,session: Session, location: int)-> float:
+        clashSet = set() # number of students with the clashes
         total = 0
         listFacilitators =[]
-        sessionClash = 0.00
-        
+        clashPercentScore = 0.00
+        sessionEnrolled = set(registration[f'{sessionEnrolled.name}'])
+
 
         for existingSession in self.getTimeTable[location]:
-            sessionEnrolled = set(registraton[f'{sessionEnrolled.name}'])
             total += len(sessionEnrolled)
 
-            existingSessionEnrolled = set(registraton[f'{existingSession.name}'])
+            existingSessionEnrolled = set(registration[f'{existingSession.name}'])
             listFacilitators.append(existingSessionEnrolled.facilitator)
             total += len(existingSessionEnrolled)
+
             clashSet = clashSet | sessionEnrolled | existingSessionEnrolled
             
         # calculates the percentage
         clashPercentage = (float(len(clashSet)) / float(total)) * 100
+        
+        clashPercentScore = round(clashPercentage) * self.CLASH_PERCENT_INDEX # in accord with clash weighting table above
+
+        # to adhere to weighting table above
+        if clashPercentage > 40:
+            clashPercentScore = 2.0
 
         #check if a facilitator will have more than 1 session in that slot
         if session.facilitator in listFacilitators:
-            sessionClash = 100.00 
+            clashPercentScore = 100.00 
 
         # also check if sessions clash in rooms
         """Rooms with special requirements are not taking into consideration at this time"""
+        
+        """Select Room for Session"""
+        for room in listofRooms:
+            if room.capacity < len(sessionEnrolled):
+                pass
+            else:
+                flag = []
+                for existingSession in self.getTimeTable[location]:
+                    if existingSession.approvedRoom == room.name:
+                        flag.append(True)
+                    else:
+                        flag.append(False)
+                if not all(flag):
+                    session.tentativeRoom = room.name
+
+        return clashPercentScore
+        
+
         
 
 
