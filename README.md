@@ -25,3 +25,11 @@ On Windows:
 .\venv\Scripts\activate
 ```
 
+Install requirements to run 
+```bash 
+pip install -r requirements.txt
+```
+```bash 
+flask --app app --debug run
+```
+
