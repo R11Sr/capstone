@@ -24,3 +24,4 @@ On Windows:
 ```bash 
 .\venv\Scripts\activate
 ```
+
