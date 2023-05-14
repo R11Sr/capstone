@@ -152,10 +152,10 @@ class Session():
 
         #energy that is used to place course on the time table
         self.energyAllocation = {}
-        self.energyAllocation['lecture'] = 25
-        self.energyAllocation['seminar'] = 12
-        self.energyAllocation['lab'] = 8
-        self.energyAllocation['tutorial'] = 4 
+        self.energyAllocation['Lecture'] = 25
+        self.energyAllocation['Seminar'] = 12
+        self.energyAllocation['Lab'] = 8
+        self.energyAllocation['Tutorial'] = 4 
 
         self.energyCapacity = self.energyAllocation[f'{type}']
 

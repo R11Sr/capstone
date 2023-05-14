@@ -79,604 +79,622 @@ search_column = 'major'
 search_values = {'COMP', 'INFO', 'SWEN'}
 
 
-
-# iterate over each row in the dataframe and update the coreSem1Value_counts_dict and coreSem1Search_counts_dict dictionaries
-for i, row in df.iterrows():
-    values = row[count_column1].split(',')
-    for value in values:
-        if value in coreSem1Value_counts_dict:
-            coreSem1Value_counts_dict[value] += 1
-        else:
-            coreSem1Value_counts_dict[value] = 1
-        if row[search_column] in search_values:
-            if value in coreSem1Search_counts_dict:
-                coreSem1Search_counts_dict[value][row[search_column]] += 1
-            else:
-                coreSem1Search_counts_dict[value] = {}
-                for search_value in search_values:
-                    coreSem1Search_counts_dict[value][search_value] = 0
-                coreSem1Search_counts_dict[value][row[search_column]] = 1
-
-# Add Lecture, Tutorial, Seminar, and Lab random whole numbers
-
-# get the first key-value pair from coreSem1Value_counts_dict
-max_count = list(coreSem1Value_counts_dict.values())[0]
-print(max_count, "I am here")
-
-for value, count in coreSem1Value_counts_dict.items():
-    lecture_count = random.randint(1, 3)
-    tutorial_max = max_count - lecture_count
-    tutorial_count = random.randint(1, min(9, tutorial_max))
-    tutorial_sum = 0
-    tutorial_numbers = []
-    while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
-        num = random.randint(0, min(40, tutorial_max))
-        if tutorial_sum + num <= count:
-            tutorial_sum += num
-            tutorial_numbers.append(num)
-    lecture_sum = 0
-    lecture_numbers = []
-    while lecture_sum < count and len(lecture_numbers) < lecture_count:
-        num = random.randint(0, min(50, count - lecture_sum))
-        lecture_sum += num
-        lecture_numbers.append(num)
-    if count > 1:
-        add_seminar_or_lab = random.choice(["Seminar", "Lab"])
-        if add_seminar_or_lab == "Seminar":
-            seminar_max = max_count - lecture_count - tutorial_count
-            seminar_count = random.randint(1, min(2, seminar_max))
-            seminar_sum = 0
-            seminar_numbers = []
-            while seminar_sum < count and len(seminar_numbers) < seminar_count:
-                num = random.randint(0, min(40, seminar_max))
-                if seminar_sum + num <= count:
-                    seminar_sum += num
-                    seminar_numbers.append(num)
-            while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
-                if seminar_count > 1:
-                    seminar_count -= 1
-                    seminar_numbers = seminar_numbers[:-1]
-                    seminar_sum = sum(seminar_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            coreSem1Value_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Seminar': list(seminar_numbers),
-            }
-        else:
-            lab_max = min(max_count - lecture_count - tutorial_count, 100)
-            lab_count = random.randint(1, min(2, lab_max))
-            lab_sum = 0
-            lab_numbers = []
-            while lab_sum < count and len(lab_numbers) < lab_count:
-                num = random.randint(0, min(40, lab_max))
-                if lab_sum + num <= count:
-                    lab_sum += num
-                    lab_numbers.append(num)
-            while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
-                if lab_count > 1:
-                    lab_count -= 1
-                    lab_numbers = lab_numbers[:-1]
-                    lab_sum = sum(lab_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            coreSem1Value_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Lab': list(lab_numbers),
-            }
-    else:
-        lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
-        while sum(lecture_numbers) > count:
-            lecture_numbers.pop()
-        coreSem1Value_counts_dict[value] = {
-            'count': count,
-            'Lecture': lecture_numbers,
-            'Tutorial': tutorial_numbers,
-        }
-
-# print out the updated coreSem1Value_counts_dict
-print("This is for:", count_column1)
-print("Updated coreSem1Value_counts_dict:")
-for value, data in coreSem1Value_counts_dict.items():
-    print(value, ":", data)
+with open(fileName,mode= 'w',newline='') as file_write:
+    writer = csv.writer(file_write)
         
-# create a dictionary to store the counts of each unique value
-coreSem2Value_counts_dict = {}
-
-# create a dictionary to store the counts of how many times each value in the search list is found in the same row as a unique value
-coreSem2Search_counts_dict = {}
-
-# specify the name of the other column to search for values in
-search_column = 'major'
-
-# create a set of values to search for in the search column
-search_values = {'COMP', 'INFO', 'SWEN'}
-
-
-
-# iterate over each row in the dataframe and update the coreSem2Value_counts_dict and coreSem2Search_counts_dict dictionaries
-for i, row in df.iterrows():
-    values = row[count_column2].split(',')
-    for value in values:
-        if value in coreSem2Value_counts_dict:
-            coreSem2Value_counts_dict[value] += 1
-        else:
-            coreSem2Value_counts_dict[value] = 1
-        if row[search_column] in search_values:
-            if value in coreSem2Search_counts_dict:
-                coreSem2Search_counts_dict[value][row[search_column]] += 1
-            else:
-                coreSem2Search_counts_dict[value] = {}
-                for search_value in search_values:
-                    coreSem2Search_counts_dict[value][search_value] = 0
-                coreSem2Search_counts_dict[value][row[search_column]] = 1
-
-# Add Lecture, Tutorial, Seminar, and Lab random whole numbers
-
-# get the first key-value pair from coreSem2Value_counts_dict
-max_count = list(coreSem2Value_counts_dict.values())[0]
-print(max_count, "I am here")
-
-for value, count in coreSem2Value_counts_dict.items():
-    lecture_count = random.randint(1, 3)
-    tutorial_max = max_count - lecture_count
-    tutorial_count = random.randint(1, min(9, tutorial_max))
-    tutorial_sum = 0
-    tutorial_numbers = []
-    while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
-        num = random.randint(0, min(40, tutorial_max))
-        if tutorial_sum + num <= count:
-            tutorial_sum += num
-            tutorial_numbers.append(num)
-    lecture_sum = 0
-    lecture_numbers = []
-    while lecture_sum < count and len(lecture_numbers) < lecture_count:
-        num = random.randint(0, min(50, count - lecture_sum))
-        lecture_sum += num
-        lecture_numbers.append(num)
-    if count > 1:
-        add_seminar_or_lab = random.choice(["Seminar", "Lab"])
-        if add_seminar_or_lab == "Seminar":
-            seminar_max = max_count - lecture_count - tutorial_count
-            seminar_count = random.randint(1, min(2, seminar_max))
-            seminar_sum = 0
-            seminar_numbers = []
-            while seminar_sum < count and len(seminar_numbers) < seminar_count:
-                num = random.randint(0, min(40, seminar_max))
-                if seminar_sum + num <= count:
-                    seminar_sum += num
-                    seminar_numbers.append(num)
-            while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
-                if seminar_count > 1:
-                    seminar_count -= 1
-                    seminar_numbers = seminar_numbers[:-1]
-                    seminar_sum = sum(seminar_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            coreSem2Value_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Seminar': list(seminar_numbers),
-            }
-        else:
-            lab_max = min(max_count - lecture_count - tutorial_count, 100)
-            lab_count = random.randint(1, min(2, lab_max))
-            lab_sum = 0
-            lab_numbers = []
-            while lab_sum < count and len(lab_numbers) < lab_count:
-                num = random.randint(0, min(40, lab_max))
-                if lab_sum + num <= count:
-                    lab_sum += num
-                    lab_numbers.append(num)
-            while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
-                if lab_count > 1:
-                    lab_count -= 1
-                    lab_numbers = lab_numbers[:-1]
-                    lab_sum = sum(lab_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            coreSem2Value_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Lab': list(lab_numbers),
-            }
-    else:
-        lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
-        while sum(lecture_numbers) > count:
-            lecture_numbers.pop()
-        coreSem2Value_counts_dict[value] = {
-            'count': count,
-            'Lecture': lecture_numbers,
-            'Tutorial': tutorial_numbers,
-        }
-
-# print out the updated coreSem2Value_counts_dict
-print("This is for:", count_column2)
-print("Updated coreSem2Value_counts_dict:")
-for value, data in coreSem2Value_counts_dict.items():
-    print(value, ":", data)
-    
-
-# create a dictionary to store the counts of each unique value
-electSem1Value_counts_dict = {}
-
-# create a dictionary to store the counts of how many times each value in the search list is found in the same row as a unique value
-electSem1Search_counts_dict = {}
-
-# specify the name of the other column to search for values in
-search_column = 'major'
-
-# create a set of values to search for in the search column
-search_values = {'COMP', 'INFO', 'SWEN'}
-
-
-
-# iterate over each row in the dataframe and update the electSem1Value_counts_dict and electSem1Search_counts_dict dictionaries
-for i, row in df.iterrows():
-    values = row[count_column3].split(',')
-    for value in values:
-        if value in electSem1Value_counts_dict:
-            electSem1Value_counts_dict[value] += 1
-        else:
-            electSem1Value_counts_dict[value] = 1
-        if row[search_column] in search_values:
-            if value in electSem1Search_counts_dict:
-                electSem1Search_counts_dict[value][row[search_column]] += 1
-            else:
-                electSem1Search_counts_dict[value] = {}
-                for search_value in search_values:
-                    electSem1Search_counts_dict[value][search_value] = 0
-                electSem1Search_counts_dict[value][row[search_column]] = 1
-
-# Add Lecture, Tutorial, Seminar, and Lab random whole numbers
-
-# get the first key-value pair from electSem1Value_counts_dict
-max_count = list(electSem1Value_counts_dict.values())[0]
-print(max_count, "I am here")
-
-for value, count in electSem1Value_counts_dict.items():
-    lecture_count = random.randint(1, 3)
-    tutorial_max = max_count - lecture_count
-    tutorial_count = random.randint(1, min(9, tutorial_max))
-    tutorial_sum = 0
-    tutorial_numbers = []
-    while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
-        num = random.randint(0, min(40, tutorial_max))
-        if tutorial_sum + num <= count:
-            tutorial_sum += num
-            tutorial_numbers.append(num)
-    lecture_sum = 0
-    lecture_numbers = []
-    while lecture_sum < count and len(lecture_numbers) < lecture_count:
-        num = random.randint(0, min(50, count - lecture_sum))
-        lecture_sum += num
-        lecture_numbers.append(num)
-    if count > 1:
-        add_seminar_or_lab = random.choice(["Seminar", "Lab"])
-        if add_seminar_or_lab == "Seminar":
-            seminar_max = max_count - lecture_count - tutorial_count
-            seminar_count = random.randint(1, min(2, seminar_max))
-            seminar_sum = 0
-            seminar_numbers = []
-            while seminar_sum < count and len(seminar_numbers) < seminar_count:
-                num = random.randint(0, min(40, seminar_max))
-                if seminar_sum + num <= count:
-                    seminar_sum += num
-                    seminar_numbers.append(num)
-            while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
-                if seminar_count > 1:
-                    seminar_count -= 1
-                    seminar_numbers = seminar_numbers[:-1]
-                    seminar_sum = sum(seminar_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            electSem1Value_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Seminar': list(seminar_numbers),
-            }
-        else:
-            lab_max = min(max_count - lecture_count - tutorial_count, 100)
-            lab_count = random.randint(1, min(2, lab_max))
-            lab_sum = 0
-            lab_numbers = []
-            while lab_sum < count and len(lab_numbers) < lab_count:
-                num = random.randint(0, min(40, lab_max))
-                if lab_sum + num <= count:
-                    lab_sum += num
-                    lab_numbers.append(num)
-            while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
-                if lab_count > 1:
-                    lab_count -= 1
-                    lab_numbers = lab_numbers[:-1]
-                    lab_sum = sum(lab_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            electSem1Value_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Lab': list(lab_numbers),
-            }
-    else:
-        lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
-        while sum(lecture_numbers) > count:
-            lecture_numbers.pop()
-        electSem1Value_counts_dict[value] = {
-            'count': count,
-            'Lecture': lecture_numbers,
-            'Tutorial': tutorial_numbers,
-        }
-
-# print out the updated electSem1Value_counts_dict
-print("This is for:", count_column3)
-print("Updated electSem1Value_counts_dict:")
-for value, data in electSem1Value_counts_dict.items():
-    print(value, ":", data)
-        
-
-# create a dictionary to store the counts of each unique value
-electSem2Value_counts_dict = {}
-
-# create a dictionary to store the counts of how many times each value in the search list is found in the same row as a unique value
-electSem2Search_counts_dict = {}
-
-# specify the name of the other column to search for values in
-search_column = 'major'
-
-# create a set of values to search for in the search column
-search_values = {'COMP', 'INFO', 'SWEN'}
-
-
-
-# iterate over each row in the dataframe and update the electSem2Value_counts_dict and electSem2Search_counts_dict dictionaries
-for i, row in df.iterrows():
-    values = row[count_column4].split(',')
-    for value in values:
-        if value in electSem2Value_counts_dict:
-            electSem2Value_counts_dict[value] += 1
-        else:
-            electSem2Value_counts_dict[value] = 1
-        if row[search_column] in search_values:
-            if value in electSem2Search_counts_dict:
-                electSem2Search_counts_dict[value][row[search_column]] += 1
-            else:
-                electSem2Search_counts_dict[value] = {}
-                for search_value in search_values:
-                    electSem2Search_counts_dict[value][search_value] = 0
-                electSem2Search_counts_dict[value][row[search_column]] = 1
-
-# Add Lecture, Tutorial, Seminar, and Lab random whole numbers
-
-# get the first key-value pair from electSem2Value_counts_dict
-max_count = list(electSem2Value_counts_dict.values())[0]
-print(max_count, "I am here")
-
-for value, count in electSem2Value_counts_dict.items():
-    lecture_count = random.randint(1, 3)
-    tutorial_max = max_count - lecture_count
-    tutorial_count = random.randint(1, min(9, tutorial_max))
-    tutorial_sum = 0
-    tutorial_numbers = []
-    while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
-        num = random.randint(0, min(40, tutorial_max))
-        if tutorial_sum + num <= count:
-            tutorial_sum += num
-            tutorial_numbers.append(num)
-    lecture_sum = 0
-    lecture_numbers = []
-    while lecture_sum < count and len(lecture_numbers) < lecture_count:
-        num = random.randint(0, min(50, count - lecture_sum))
-        lecture_sum += num
-        lecture_numbers.append(num)
-    if count > 1:
-        add_seminar_or_lab = random.choice(["Seminar", "Lab"])
-        if add_seminar_or_lab == "Seminar":
-            seminar_max = max_count - lecture_count - tutorial_count
-            seminar_count = random.randint(1, min(2, seminar_max))
-            seminar_sum = 0
-            seminar_numbers = []
-            while seminar_sum < count and len(seminar_numbers) < seminar_count:
-                num = random.randint(0, min(40, seminar_max))
-                if seminar_sum + num <= count:
-                    seminar_sum += num
-                    seminar_numbers.append(num)
-            while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
-                if seminar_count > 1:
-                    seminar_count -= 1
-                    seminar_numbers = seminar_numbers[:-1]
-                    seminar_sum = sum(seminar_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            electSem2Value_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Seminar': list(seminar_numbers),
-            }
-        else:
-            lab_max = min(max_count - lecture_count - tutorial_count, 100)
-            lab_count = random.randint(1, min(2, lab_max))
-            lab_sum = 0
-            lab_numbers = []
-            while lab_sum < count and len(lab_numbers) < lab_count:
-                num = random.randint(0, min(40, lab_max))
-                if lab_sum + num <= count:
-                    lab_sum += num
-                    lab_numbers.append(num)
-            while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
-                if lab_count > 1:
-                    lab_count -= 1
-                    lab_numbers = lab_numbers[:-1]
-                    lab_sum = sum(lab_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            electSem2Value_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Lab': list(lab_numbers),
-            }
-    else:
-        lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
-        while sum(lecture_numbers) > count:
-            lecture_numbers.pop()
-        electSem2Value_counts_dict[value] = {
-            'count': count,
-            'Lecture': lecture_numbers,
-            'Tutorial': tutorial_numbers,
-        }
-
-# print out the updated electSem2Value_counts_dict
-print("This is for:", count_column4)
-print("Updated electSem2Value_counts_dict:")
-for value, data in electSem2Value_counts_dict.items():
-    print(value, ":", data)
-        
-
-# create a dictionary to store the counts of each unique value
-coreSummerValue_counts_dict = {}
-
-# create a dictionary to store the counts of how many times each value in the search list is found in the same row as a unique value
-coreSummerSearch_counts_dict = {}
-
-# specify the name of the other column to search for values in
-search_column = 'major'
-
-# create a set of values to search for in the search column
-search_values = {'COMP', 'INFO', 'SWEN'}
-
-
-
-# iterate over each row in the dataframe and update the coreSummerValue_counts_dict and coreSummerSearch_counts_dict dictionaries
-for i, row in df.iterrows():
-    if not pd.isna(row[count_column5]):
-        values = row[count_column5].split(',')
+    # iterate over each row in the dataframe and update the coreSem1Value_counts_dict and coreSem1Search_counts_dict dictionaries
+    for i, row in df.iterrows():
+        values = row[count_column1].split(',')
         for value in values:
-            if value in coreSummerValue_counts_dict:
-                coreSummerValue_counts_dict[value] += 1
+            if value in coreSem1Value_counts_dict:
+                coreSem1Value_counts_dict[value] += 1
             else:
-                coreSummerValue_counts_dict[value] = 1
+                coreSem1Value_counts_dict[value] = 1
             if row[search_column] in search_values:
-                if value in coreSummerSearch_counts_dict:
-                    coreSummerSearch_counts_dict[value][row[search_column]] += 1
+                if value in coreSem1Search_counts_dict:
+                    coreSem1Search_counts_dict[value][row[search_column]] += 1
                 else:
-                    coreSummerSearch_counts_dict[value] = {}
+                    coreSem1Search_counts_dict[value] = {}
                     for search_value in search_values:
-                        coreSummerSearch_counts_dict[value][search_value] = 0
-                    coreSummerSearch_counts_dict[value][row[search_column]] = 1
+                        coreSem1Search_counts_dict[value][search_value] = 0
+                    coreSem1Search_counts_dict[value][row[search_column]] = 1
 
-# Add Lecture, Tutorial, Seminar, and Lab random whole numbers
+    # Add Lecture, Tutorial, Seminar, and Lab random whole numbers
 
-# get the first key-value pair from coreSummerValue_counts_dict
-max_count = list(coreSummerValue_counts_dict.values())[0]
-print(max_count, "I am here")
+    # get the first key-value pair from coreSem1Value_counts_dict
+    max_count = list(coreSem1Value_counts_dict.values())[0]
+    print(max_count, "I am here")
 
-for value, count in coreSummerValue_counts_dict.items():
-    lecture_count = random.randint(1, 3)
-    tutorial_max = max_count - lecture_count
-    tutorial_count = random.randint(1, min(9, tutorial_max))
-    tutorial_sum = 0
-    tutorial_numbers = []
-    while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
-        num = random.randint(0, min(40, tutorial_max))
-        if tutorial_sum + num <= count:
-            tutorial_sum += num
-            tutorial_numbers.append(num)
-    lecture_sum = 0
-    lecture_numbers = []
-    while lecture_sum < count and len(lecture_numbers) < lecture_count:
-        num = random.randint(0, min(50, count - lecture_sum))
-        lecture_sum += num
-        lecture_numbers.append(num)
-    if count > 1:
-        add_seminar_or_lab = random.choice(["Seminar", "Lab"])
-        if add_seminar_or_lab == "Seminar":
-            seminar_max = max_count - lecture_count - tutorial_count
-            seminar_count = random.randint(1, min(2, seminar_max))
-            seminar_sum = 0
-            seminar_numbers = []
-            while seminar_sum < count and len(seminar_numbers) < seminar_count:
-                num = random.randint(0, min(40, seminar_max))
-                if seminar_sum + num <= count:
-                    seminar_sum += num
-                    seminar_numbers.append(num)
-            while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
-                if seminar_count > 1:
-                    seminar_count -= 1
-                    seminar_numbers = seminar_numbers[:-1]
-                    seminar_sum = sum(seminar_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
-            coreSummerValue_counts_dict[value] = {
-                'count': count,
-                'Lecture': lecture_numbers,
-                'Tutorial': tutorial_numbers,
-                'Seminar': list(seminar_numbers),
-            }
+    for value, count in coreSem1Value_counts_dict.items():
+        lecture_count = random.randint(1, 3)
+        tutorial_max = max_count - lecture_count
+        tutorial_count = random.randint(1, min(9, tutorial_max))
+        tutorial_sum = 0
+        tutorial_numbers = []
+        while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
+            num = random.randint(0, min(40, tutorial_max))
+            if tutorial_sum + num <= count:
+                tutorial_sum += num
+                tutorial_numbers.append(num)
+        lecture_sum = 0
+        lecture_numbers = []
+        while lecture_sum < count and len(lecture_numbers) < lecture_count:
+            num = random.randint(0, min(50, count - lecture_sum))
+            lecture_sum += num
+            lecture_numbers.append(num)
+        if count > 1:
+            add_seminar_or_lab = random.choice(["Seminar", "Lab"])
+            if add_seminar_or_lab == "Seminar":
+                seminar_max = max_count - lecture_count - tutorial_count
+                seminar_count = random.randint(1, min(2, seminar_max))
+                seminar_sum = 0
+                seminar_numbers = []
+                while seminar_sum < count and len(seminar_numbers) < seminar_count:
+                    num = random.randint(0, min(40, seminar_max))
+                    if seminar_sum + num <= count:
+                        seminar_sum += num
+                        seminar_numbers.append(num)
+                while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
+                    if seminar_count > 1:
+                        seminar_count -= 1
+                        seminar_numbers = seminar_numbers[:-1]
+                        seminar_sum = sum(seminar_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                coreSem1Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Seminar': list(seminar_numbers),
+                }
+            else:
+                lab_max = min(max_count - lecture_count - tutorial_count, 100)
+                lab_count = random.randint(1, min(2, lab_max))
+                lab_sum = 0
+                lab_numbers = []
+                while lab_sum < count and len(lab_numbers) < lab_count:
+                    num = random.randint(0, min(40, lab_max))
+                    if lab_sum + num <= count:
+                        lab_sum += num
+                        lab_numbers.append(num)
+                while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
+                    if lab_count > 1:
+                        lab_count -= 1
+                        lab_numbers = lab_numbers[:-1]
+                        lab_sum = sum(lab_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                coreSem1Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Lab': list(lab_numbers),
+                }
         else:
-            lab_max = min(max_count - lecture_count - tutorial_count, 100)
-            lab_count = random.randint(1, min(2, lab_max))
-            lab_sum = 0
-            lab_numbers = []
-            while lab_sum < count and len(lab_numbers) < lab_count:
-                num = random.randint(0, min(40, lab_max))
-                if lab_sum + num <= count:
-                    lab_sum += num
-                    lab_numbers.append(num)
-            while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
-                if lab_count > 1:
-                    lab_count -= 1
-                    lab_numbers = lab_numbers[:-1]
-                    lab_sum = sum(lab_numbers)
-                elif tutorial_count > 1:
-                    tutorial_count -= 1
-                elif lecture_count > 1:
-                    lecture_count -= 1
+            lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
+            while sum(lecture_numbers) > count:
+                lecture_numbers.pop()
+            coreSem1Value_counts_dict[value] = {
+                'count': count,
+                'Lecture': lecture_numbers,
+                'Tutorial': tutorial_numbers,
+            }
+
+    # print out the updated coreSem1Value_counts_dict
+    print("This is for:", count_column1)
+    print("Updated coreSem1Value_counts_dict:")
+    for value, data in coreSem1Value_counts_dict.items():
+        print(value, ":", data)
+
+        writer.writerows([
+                [f"{value} : {data}"]
+                ])
+            
+    # create a dictionary to store the counts of each unique value
+    coreSem2Value_counts_dict = {}
+
+    # create a dictionary to store the counts of how many times each value in the search list is found in the same row as a unique value
+    coreSem2Search_counts_dict = {}
+
+    # specify the name of the other column to search for values in
+    search_column = 'major'
+
+    # create a set of values to search for in the search column
+    search_values = {'COMP', 'INFO', 'SWEN'}
+
+
+
+    # iterate over each row in the dataframe and update the coreSem2Value_counts_dict and coreSem2Search_counts_dict dictionaries
+    for i, row in df.iterrows():
+        values = row[count_column2].split(',')
+        for value in values:
+            if value in coreSem2Value_counts_dict:
+                coreSem2Value_counts_dict[value] += 1
+            else:
+                coreSem2Value_counts_dict[value] = 1
+            if row[search_column] in search_values:
+                if value in coreSem2Search_counts_dict:
+                    coreSem2Search_counts_dict[value][row[search_column]] += 1
+                else:
+                    coreSem2Search_counts_dict[value] = {}
+                    for search_value in search_values:
+                        coreSem2Search_counts_dict[value][search_value] = 0
+                    coreSem2Search_counts_dict[value][row[search_column]] = 1
+
+    # Add Lecture, Tutorial, Seminar, and Lab random whole numbers
+
+    # get the first key-value pair from coreSem2Value_counts_dict
+    max_count = list(coreSem2Value_counts_dict.values())[0]
+    print(max_count, "I am here")
+
+    for value, count in coreSem2Value_counts_dict.items():
+        lecture_count = random.randint(1, 3)
+        tutorial_max = max_count - lecture_count
+        tutorial_count = random.randint(1, min(9, tutorial_max))
+        tutorial_sum = 0
+        tutorial_numbers = []
+        while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
+            num = random.randint(0, min(40, tutorial_max))
+            if tutorial_sum + num <= count:
+                tutorial_sum += num
+                tutorial_numbers.append(num)
+        lecture_sum = 0
+        lecture_numbers = []
+        while lecture_sum < count and len(lecture_numbers) < lecture_count:
+            num = random.randint(0, min(50, count - lecture_sum))
+            lecture_sum += num
+            lecture_numbers.append(num)
+        if count > 1:
+            add_seminar_or_lab = random.choice(["Seminar", "Lab"])
+            if add_seminar_or_lab == "Seminar":
+                seminar_max = max_count - lecture_count - tutorial_count
+                seminar_count = random.randint(1, min(2, seminar_max))
+                seminar_sum = 0
+                seminar_numbers = []
+                while seminar_sum < count and len(seminar_numbers) < seminar_count:
+                    num = random.randint(0, min(40, seminar_max))
+                    if seminar_sum + num <= count:
+                        seminar_sum += num
+                        seminar_numbers.append(num)
+                while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
+                    if seminar_count > 1:
+                        seminar_count -= 1
+                        seminar_numbers = seminar_numbers[:-1]
+                        seminar_sum = sum(seminar_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                coreSem2Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Seminar': list(seminar_numbers),
+                }
+            else:
+                lab_max = min(max_count - lecture_count - tutorial_count, 100)
+                lab_count = random.randint(1, min(2, lab_max))
+                lab_sum = 0
+                lab_numbers = []
+                while lab_sum < count and len(lab_numbers) < lab_count:
+                    num = random.randint(0, min(40, lab_max))
+                    if lab_sum + num <= count:
+                        lab_sum += num
+                        lab_numbers.append(num)
+                while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
+                    if lab_count > 1:
+                        lab_count -= 1
+                        lab_numbers = lab_numbers[:-1]
+                        lab_sum = sum(lab_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                coreSem2Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Lab': list(lab_numbers),
+                }
+        else:
+            lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
+            while sum(lecture_numbers) > count:
+                lecture_numbers.pop()
+            coreSem2Value_counts_dict[value] = {
+                'count': count,
+                'Lecture': lecture_numbers,
+                'Tutorial': tutorial_numbers,
+            }
+
+    # print out the updated coreSem2Value_counts_dict
+    print("This is for:", count_column2)
+    print("Updated coreSem2Value_counts_dict:")
+    for value, data in coreSem2Value_counts_dict.items():
+        print(value, ":", data)
+        writer.writerows([
+                [f"{value} : {data}"]
+                ])
+        
+
+    # create a dictionary to store the counts of each unique value
+    electSem1Value_counts_dict = {}
+
+    # create a dictionary to store the counts of how many times each value in the search list is found in the same row as a unique value
+    electSem1Search_counts_dict = {}
+
+    # specify the name of the other column to search for values in
+    search_column = 'major'
+
+    # create a set of values to search for in the search column
+    search_values = {'COMP', 'INFO', 'SWEN'}
+
+
+
+    # iterate over each row in the dataframe and update the electSem1Value_counts_dict and electSem1Search_counts_dict dictionaries
+    for i, row in df.iterrows():
+        values = row[count_column3].split(',')
+        for value in values:
+            if value in electSem1Value_counts_dict:
+                electSem1Value_counts_dict[value] += 1
+            else:
+                electSem1Value_counts_dict[value] = 1
+            if row[search_column] in search_values:
+                if value in electSem1Search_counts_dict:
+                    electSem1Search_counts_dict[value][row[search_column]] += 1
+                else:
+                    electSem1Search_counts_dict[value] = {}
+                    for search_value in search_values:
+                        electSem1Search_counts_dict[value][search_value] = 0
+                    electSem1Search_counts_dict[value][row[search_column]] = 1
+
+    # Add Lecture, Tutorial, Seminar, and Lab random whole numbers
+
+    # get the first key-value pair from electSem1Value_counts_dict
+    max_count = list(electSem1Value_counts_dict.values())[0]
+    print(max_count, "I am here")
+
+    for value, count in electSem1Value_counts_dict.items():
+        lecture_count = random.randint(1, 3)
+        tutorial_max = max_count - lecture_count
+        tutorial_count = random.randint(1, min(9, tutorial_max))
+        tutorial_sum = 0
+        tutorial_numbers = []
+        while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
+            num = random.randint(0, min(40, tutorial_max))
+            if tutorial_sum + num <= count:
+                tutorial_sum += num
+                tutorial_numbers.append(num)
+        lecture_sum = 0
+        lecture_numbers = []
+        while lecture_sum < count and len(lecture_numbers) < lecture_count:
+            num = random.randint(0, min(50, count - lecture_sum))
+            lecture_sum += num
+            lecture_numbers.append(num)
+        if count > 1:
+            add_seminar_or_lab = random.choice(["Seminar", "Lab"])
+            if add_seminar_or_lab == "Seminar":
+                seminar_max = max_count - lecture_count - tutorial_count
+                seminar_count = random.randint(1, min(2, seminar_max))
+                seminar_sum = 0
+                seminar_numbers = []
+                while seminar_sum < count and len(seminar_numbers) < seminar_count:
+                    num = random.randint(0, min(40, seminar_max))
+                    if seminar_sum + num <= count:
+                        seminar_sum += num
+                        seminar_numbers.append(num)
+                while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
+                    if seminar_count > 1:
+                        seminar_count -= 1
+                        seminar_numbers = seminar_numbers[:-1]
+                        seminar_sum = sum(seminar_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                electSem1Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Seminar': list(seminar_numbers),
+                }
+            else:
+                lab_max = min(max_count - lecture_count - tutorial_count, 100)
+                lab_count = random.randint(1, min(2, lab_max))
+                lab_sum = 0
+                lab_numbers = []
+                while lab_sum < count and len(lab_numbers) < lab_count:
+                    num = random.randint(0, min(40, lab_max))
+                    if lab_sum + num <= count:
+                        lab_sum += num
+                        lab_numbers.append(num)
+                while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
+                    if lab_count > 1:
+                        lab_count -= 1
+                        lab_numbers = lab_numbers[:-1]
+                        lab_sum = sum(lab_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                electSem1Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Lab': list(lab_numbers),
+                }
+        else:
+            lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
+            while sum(lecture_numbers) > count:
+                lecture_numbers.pop()
+            electSem1Value_counts_dict[value] = {
+                'count': count,
+                'Lecture': lecture_numbers,
+                'Tutorial': tutorial_numbers,
+            }
+
+    # print out the updated electSem1Value_counts_dict
+    print("This is for:", count_column3)
+    print("Updated electSem1Value_counts_dict:")
+    for value, data in electSem1Value_counts_dict.items():
+        print(value, ":", data)
+        writer.writerows([
+                [f"{value} : {data}"]
+                ])
+            
+
+    # create a dictionary to store the counts of each unique value
+    electSem2Value_counts_dict = {}
+
+    # create a dictionary to store the counts of how many times each value in the search list is found in the same row as a unique value
+    electSem2Search_counts_dict = {}
+
+    # specify the name of the other column to search for values in
+    search_column = 'major'
+
+    # create a set of values to search for in the search column
+    search_values = {'COMP', 'INFO', 'SWEN'}
+
+
+
+    # iterate over each row in the dataframe and update the electSem2Value_counts_dict and electSem2Search_counts_dict dictionaries
+    for i, row in df.iterrows():
+        values = row[count_column4].split(',')
+        for value in values:
+            if value in electSem2Value_counts_dict:
+                electSem2Value_counts_dict[value] += 1
+            else:
+                electSem2Value_counts_dict[value] = 1
+            if row[search_column] in search_values:
+                if value in electSem2Search_counts_dict:
+                    electSem2Search_counts_dict[value][row[search_column]] += 1
+                else:
+                    electSem2Search_counts_dict[value] = {}
+                    for search_value in search_values:
+                        electSem2Search_counts_dict[value][search_value] = 0
+                    electSem2Search_counts_dict[value][row[search_column]] = 1
+
+    # Add Lecture, Tutorial, Seminar, and Lab random whole numbers
+
+    # get the first key-value pair from electSem2Value_counts_dict
+    max_count = list(electSem2Value_counts_dict.values())[0]
+    print(max_count, "I am here")
+
+    for value, count in electSem2Value_counts_dict.items():
+        lecture_count = random.randint(1, 3)
+        tutorial_max = max_count - lecture_count
+        tutorial_count = random.randint(1, min(9, tutorial_max))
+        tutorial_sum = 0
+        tutorial_numbers = []
+        while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
+            num = random.randint(0, min(40, tutorial_max))
+            if tutorial_sum + num <= count:
+                tutorial_sum += num
+                tutorial_numbers.append(num)
+        lecture_sum = 0
+        lecture_numbers = []
+        while lecture_sum < count and len(lecture_numbers) < lecture_count:
+            num = random.randint(0, min(50, count - lecture_sum))
+            lecture_sum += num
+            lecture_numbers.append(num)
+        if count > 1:
+            add_seminar_or_lab = random.choice(["Seminar", "Lab"])
+            if add_seminar_or_lab == "Seminar":
+                seminar_max = max_count - lecture_count - tutorial_count
+                seminar_count = random.randint(1, min(2, seminar_max))
+                seminar_sum = 0
+                seminar_numbers = []
+                while seminar_sum < count and len(seminar_numbers) < seminar_count:
+                    num = random.randint(0, min(40, seminar_max))
+                    if seminar_sum + num <= count:
+                        seminar_sum += num
+                        seminar_numbers.append(num)
+                while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
+                    if seminar_count > 1:
+                        seminar_count -= 1
+                        seminar_numbers = seminar_numbers[:-1]
+                        seminar_sum = sum(seminar_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                electSem2Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Seminar': list(seminar_numbers),
+                }
+            else:
+                lab_max = min(max_count - lecture_count - tutorial_count, 100)
+                lab_count = random.randint(1, min(2, lab_max))
+                lab_sum = 0
+                lab_numbers = []
+                while lab_sum < count and len(lab_numbers) < lab_count:
+                    num = random.randint(0, min(40, lab_max))
+                    if lab_sum + num <= count:
+                        lab_sum += num
+                        lab_numbers.append(num)
+                while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
+                    if lab_count > 1:
+                        lab_count -= 1
+                        lab_numbers = lab_numbers[:-1]
+                        lab_sum = sum(lab_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                electSem2Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Lab': list(lab_numbers),
+                }
+        else:
+            lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
+            while sum(lecture_numbers) > count:
+                lecture_numbers.pop()
+            electSem2Value_counts_dict[value] = {
+                'count': count,
+                'Lecture': lecture_numbers,
+                'Tutorial': tutorial_numbers,
+            }
+
+    # print out the updated electSem2Value_counts_dict
+    print("This is for:", count_column4)
+    print("Updated electSem2Value_counts_dict:")
+    for value, data in electSem2Value_counts_dict.items():
+        print(value, ":", data)
+        writer.writerows([
+                [f"{value} : {data}"]
+                ])
+            
+
+    # create a dictionary to store the counts of each unique value
+    coreSummerValue_counts_dict = {}
+
+    # create a dictionary to store the counts of how many times each value in the search list is found in the same row as a unique value
+    coreSummerSearch_counts_dict = {}
+
+    # specify the name of the other column to search for values in
+    search_column = 'major'
+
+    # create a set of values to search for in the search column
+    search_values = {'COMP', 'INFO', 'SWEN'}
+
+
+
+    # iterate over each row in the dataframe and update the coreSummerValue_counts_dict and coreSummerSearch_counts_dict dictionaries
+    for i, row in df.iterrows():
+        if not pd.isna(row[count_column5]):
+            values = row[count_column5].split(',')
+            for value in values:
+                if value in coreSummerValue_counts_dict:
+                    coreSummerValue_counts_dict[value] += 1
+                else:
+                    coreSummerValue_counts_dict[value] = 1
+                if row[search_column] in search_values:
+                    if value in coreSummerSearch_counts_dict:
+                        coreSummerSearch_counts_dict[value][row[search_column]] += 1
+                    else:
+                        coreSummerSearch_counts_dict[value] = {}
+                        for search_value in search_values:
+                            coreSummerSearch_counts_dict[value][search_value] = 0
+                        coreSummerSearch_counts_dict[value][row[search_column]] = 1
+
+    # Add Lecture, Tutorial, Seminar, and Lab random whole numbers
+
+    # get the first key-value pair from coreSummerValue_counts_dict
+    max_count = list(coreSummerValue_counts_dict.values())[0]
+    print(max_count, "I am here")
+
+    for value, count in coreSummerValue_counts_dict.items():
+        lecture_count = random.randint(1, 3)
+        tutorial_max = max_count - lecture_count
+        tutorial_count = random.randint(1, min(9, tutorial_max))
+        tutorial_sum = 0
+        tutorial_numbers = []
+        while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
+            num = random.randint(0, min(40, tutorial_max))
+            if tutorial_sum + num <= count:
+                tutorial_sum += num
+                tutorial_numbers.append(num)
+        lecture_sum = 0
+        lecture_numbers = []
+        while lecture_sum < count and len(lecture_numbers) < lecture_count:
+            num = random.randint(0, min(50, count - lecture_sum))
+            lecture_sum += num
+            lecture_numbers.append(num)
+        if count > 1:
+            add_seminar_or_lab = random.choice(["Seminar", "Lab"])
+            if add_seminar_or_lab == "Seminar":
+                seminar_max = max_count - lecture_count - tutorial_count
+                seminar_count = random.randint(1, min(2, seminar_max))
+                seminar_sum = 0
+                seminar_numbers = []
+                while seminar_sum < count and len(seminar_numbers) < seminar_count:
+                    num = random.randint(0, min(40, seminar_max))
+                    if seminar_sum + num <= count:
+                        seminar_sum += num
+                        seminar_numbers.append(num)
+                while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
+                    if seminar_count > 1:
+                        seminar_count -= 1
+                        seminar_numbers = seminar_numbers[:-1]
+                        seminar_sum = sum(seminar_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                coreSummerValue_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Seminar': list(seminar_numbers),
+                }
+            else:
+                lab_max = min(max_count - lecture_count - tutorial_count, 100)
+                lab_count = random.randint(1, min(2, lab_max))
+                lab_sum = 0
+                lab_numbers = []
+                while lab_sum < count and len(lab_numbers) < lab_count:
+                    num = random.randint(0, min(40, lab_max))
+                    if lab_sum + num <= count:
+                        lab_sum += num
+                        lab_numbers.append(num)
+                while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
+                    if lab_count > 1:
+                        lab_count -= 1
+                        lab_numbers = lab_numbers[:-1]
+                        lab_sum = sum(lab_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                coreSummerValue_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Lab': list(lab_numbers),
+                }
+        else:
+            lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
+            while sum(lecture_numbers) > count:
+                lecture_numbers.pop()
             coreSummerValue_counts_dict[value] = {
                 'count': count,
                 'Lecture': lecture_numbers,
                 'Tutorial': tutorial_numbers,
-                'Lab': list(lab_numbers),
             }
-    else:
-        lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
-        while sum(lecture_numbers) > count:
-            lecture_numbers.pop()
-        coreSummerValue_counts_dict[value] = {
-            'count': count,
-            'Lecture': lecture_numbers,
-            'Tutorial': tutorial_numbers,
-        }
 
-# print out the updated coreSummerValue_counts_dict
-print("This is for:", count_column5)
-print("Updated coreSummerValue_counts_dict:")
-for value, data in coreSummerValue_counts_dict.items():
-    print(value, ":", data)
-        
+    # print out the updated coreSummerValue_counts_dict
+    print("This is for:", count_column5)
+    print("Updated coreSummerValue_counts_dict:")
+    for value, data in coreSummerValue_counts_dict.items():
+        print(value, ":", data)
+        writer.writerows([
+                [f"{value} : {data}"]
+                ])
+            
