@@ -1,5 +1,5 @@
 from app import app
-from flask import render_template, flash
+from flask import render_template, flash, request
 from werkzeug.utils import secure_filename
 from app.forms import CourseForm
 
@@ -13,15 +13,18 @@ def form():
     form = CourseForm()
 
     if form.validate_on_submit():
-        courses_file = form.file_upload.data
-        course_title = form.course_title.data
-        course_code = form.course_code.data
-        lecturer = form.lecturer.data
-        first_name = form.first_name.data
-        last_name = form.last_name.data
-        time_preferences = form.time_preferences.data
-
+        courses_file = request.files['fileUpload']
+        course_title = request.form['courseTitle']
+        course_code =  request.form['courseCode']
+        lecturer = request.form['lecturer']
+        first_name = request.form['firstName']
+        last_name = request.form['lastName']
+        time_preferences = request.form.getlist('timePreferences')
+        
         filename = secure_filename(courses_file.filename)
+        
+        
+        
         flash('Property Information Successfully Added!', 'success')
 
         # Return a response or redirect to another page
