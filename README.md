@@ -13,6 +13,8 @@ If you are using python3:
 python3 -m venv venv 
 ```
 
+Then
+
 ```bash 
 source venv/bin/activate
 ```
@@ -20,5 +22,5 @@ OR
 
 On Windows: 
 ```bash 
-source .\venv\Scripts\activate
+.\venv\Scripts\activate
 ```
