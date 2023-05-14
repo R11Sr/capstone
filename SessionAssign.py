@@ -1,8 +1,10 @@
 import pandas as pd
 import random
 import numpy as np
+import csv
 
-df = pd.read_csv('MockData.csv')
+fileName = 'CurrentRegistration.csv'
+df = pd.read_csv('Mock_Data_Updated.csv')
 # define capacity dictionaries
 classroom_capacity = {
     "CompCLR": 50,

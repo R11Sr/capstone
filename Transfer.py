@@ -4,7 +4,7 @@ import statistics
 from dataclasses import dataclass, field
 from typing import Any
 from Course import *
-
+from collections import deque
 
 """Possible things for UI
 max requeue attempts
@@ -15,6 +15,7 @@ max requeue attempts
 class Transfer():
     def __init__(self,geneotype:str,courseAndSessionListing: list) -> None:
         self.fifoqueue = None
+        self.deque = None
         self.priorityqueue = None
         self.geneotype = geneotype
         self.timeTable = None
@@ -57,12 +58,12 @@ class Transfer():
 
     def makeplacementPlans(self):
         self.placeDict  ={}
-        self.placeDict['100'] = 'PriorityQStraightOrder'
-        self.placeDict['000'] = 'PriorityQReverseOrder'
-        self.placeDict['101'] = 'FIFOQStraightOrder'
-        self.placeDict['001'] = 'FIFOQReveseOrder'
-        self.placeDict['110'] = 'IterativeStraightOrder'  #tentative
-        self.placeDict['010'] = 'IterativeReverseOrder'   #tentative
+        self.placeDict['100'] = 'PriorityQLimiting'
+        self.placeDict['000'] = 'PriorityQNonLimitingConstraints'
+        self.placeDict['101'] = 'FIFOQLimiting'
+        self.placeDict['001'] = 'FIFOQNonLimitingConstraints'
+        self.placeDict['110'] = 'DequeQLimiting'  #tentative
+        self.placeDict['010'] = 'DequeQNonLimitingConstraints'   #tentative
 
     """_summary_
         Responsible for setting the total number of attempts that can be made to requeue a session
@@ -102,6 +103,11 @@ class Transfer():
             return True
         return False
     
+    def isDequeAvailable(self) -> bool:
+        if self.deque:
+            return True
+        return False
+    
     def isPriorityQueueAvailable(self) -> bool:
         if self.priority:
             return True
@@ -121,6 +127,9 @@ class Transfer():
 
     def buildFIFOQueue(self) ->None:
         self.fifoqueue = queue.Queue()
+
+    def buildDeque(self) -> None:
+        self.deque  = deque()
 
     '''These commented out methods are not supported by the Queue object from Python/Lib'''
     # def front(self):
@@ -146,8 +155,20 @@ class Transfer():
         if self.FIFOQueueAvailable():
             self.fifoqueue.put(session)
     
+    def isDequeEmpty(self) -> bool:
+        if not bool(self.deque):
+            return True
+        return False
+ 
+    def dequeRequeueLeft(self,session: Session) -> None:
+        if self.isDequeAvailable():
+            self.appendleft(session)
+
+    def dequeRequeueRight(self,session: Session) -> None:
+        if self.isDequeAvailable():
+            self.append(session)
+
     def priorityRequeue(self,session: Session) ->None:
-        
         self.priorityqueue.put((session.getPriority(),session))
 
 
@@ -468,15 +489,6 @@ class Transfer():
 
         return clashPercentScore
         
-
-        
-
-
-        
-
-
-
-
              
              
     def RoomProximity(self, session: Session, location: int) -> float:
@@ -546,7 +558,7 @@ class Transfer():
             return [cai,clash]
             
         
-    def PriorityQStraightOrder(self) -> list:
+    def PriorityQLimiting(self) -> list:
         self.buildPriorityQueue()
 
         if self.isPriorityQueueAvailable():
@@ -573,13 +585,10 @@ class Transfer():
                     self.enqueuePriority(self,session.getPriority(),session)
 
         return self.priorityqueue
-
-
-
-            
+      
 
             
-    def PriorityQReverseOrder(self) -> list:
+    def PriorityQNonLimitingConstraints(self) -> list:
         self.buildPriorityQueue()
 
         if self.isPriorityQueueAvailable():
@@ -597,23 +606,161 @@ class Transfer():
 
             if allLocations:
                 location = allLocations.pop()
+                self.placeSession(session,location)
+
+
+        return self.priorityqueue
+
+
+        
+    def FIFOQLimiting(self )-> list:
+        self.buildFIFOQueue(self.allcourses)
+        
+        while not self.fifoqueue.empty():
+            session = self.fifoqueue.get()
+            
+            '''available location should be a list [(score: int,location: list)]
+                eg. for 2 hr session [(5,[6,11]),(7,[8,13])]'''
+            allLocations = self.filter(session,self.getTimeTable())
+            val = lambda tup: tup[0]
+            allLocations.sort(key=val)
+
+            if allLocations:
+                location = allLocations.pop()
                 if all(self.checkAllHardConstraint(session,location)): 
                     self.placeSession(session,location)
                 elif session.getAttempts() >= self.getMaxRequeueAttempts:
                     self.placeSession(session,location)
                 else:
                     session.useAttempt()
-                    self.enqueuePriority(self,session.getPriority(),session)
+                    self.enqueueFIFO(self,session)
 
-        return self.priorityqueue
-    def FIFOQStraightOrder(self )-> list:
-        pass
-    def FIFOQReveseOrder(self) -> list:
-        pass
-    def IterativeStraightOrder(self) -> list:
-      pass
-    def IterativeReverseOrder(self) -> list :
-      pass
+
+    def FIFOQNonLimitingConstraints(self) -> list:
+        self.buildFIFOQueue(self.allcourses)
+        
+        while not self.fifoqueue.empty():
+            session = self.fifoqueue.get()
+            
+            '''available location should be a list [(score: int,location: list)]
+                eg. for 2 hr session [(5,[6,11]),(7,[8,13])]'''
+            allLocations = self.filter(session,self.getTimeTable())
+            val = lambda tup: tup[0]
+            allLocations.sort(key=val)
+
+            if allLocations:
+                location = allLocations.pop()
+                self.placeSession(session,location)
+
+    """
+    https://docs.python.org/3/library/collections.html#deque-objects
+
+    This manner of generating the time table places the lectures to a separate portion of the queue the left
+    all other sessions are placed to the right.
+
+    """
+    def DequeQLimiting(self) -> list:
+        self.buildDeque()
+        counter = 0
+
+        #Populate the Queue
+        for session in self.allSessions:
+            if session.getType() == 'Lecture':
+                self.deque.appendleft(session)
+            else:
+                self.deque.append(session)
+        
+        while not self.isDequeEmpty():
+            #This is to simulate taking 1 from the left(lecturer) and in the next iteration
+            #take 1 session from the right(tut,seminar or lab)
+
+            #from Left
+            if counter % 2 == 0:
+                session = self.deque.popleft()
+                
+                '''available location should be a list [(score: int,location: list)]
+                    eg. for 2 hr session [(5,[6,11]),(7,[8,13])]'''
+                allLocations = self.filter(session,self.getTimeTable())
+                val = lambda tup: tup[0]
+                allLocations.sort(key=val)
+
+                if allLocations:
+                    location = allLocations.pop()
+                    if all(self.checkAllHardConstraint(session,location)): 
+                        self.placeSession(session,location)
+                    elif session.getAttempts() >= self.getMaxRequeueAttempts:
+                        self.placeSession(session,location)
+                    else:
+                        session.useAttempt()
+                        self.dequeRequeueLeft(self,session)
+            #from Right
+            else:
+                session = self.deque.pop()
+                
+                '''available location should be a list [(score: int,location: list)]
+                    eg. for 2 hr session [(5,[6,11]),(7,[8,13])]'''
+                allLocations = self.filter(session,self.getTimeTable())
+                val = lambda tup: tup[0]
+                allLocations.sort(key=val)
+
+                if allLocations:
+                    location = allLocations.pop()
+                    if all(self.checkAllHardConstraint(session,location)): 
+                        self.placeSession(session,location)
+                    elif session.getAttempts() >= self.getMaxRequeueAttempts:
+                        self.placeSession(session,location)
+                    else:
+                        session.useAttempt()
+                        self.dequeRequeueRight(self,session)
+
+            
+            counter+=1
+
+
+    def DequeQNonLimitingConstraints(self) -> list :
+        self.buildDeque()
+        counter = 0
+
+        #Populate the Queue
+        for session in self.allSessions:
+            if session.getType() == 'Lecture':
+                self.deque.appendleft(session)
+            else:
+                self.deque.append(session)
+        
+        while not self.isDequeEmpty():
+            #This is to simulate taking 1 from the left(lecturer) and in the next iteration
+            #take 1 session from the right(tut,seminar or lab)
+
+            #from Left
+            if counter % 2 == 0:
+                session = self.deque.popleft()
+                
+                '''available location should be a list [(score: int,location: list)]
+                    eg. for 2 hr session [(5,[6,11]),(7,[8,13])]'''
+                allLocations = self.filter(session,self.getTimeTable())
+                val = lambda tup: tup[0]
+                allLocations.sort(key=val)
+
+                if allLocations:
+                    location = allLocations.pop()
+                    self.placeSession(session,location)
+
+            #from Right
+            else:
+                session = self.deque.pop()
+                
+                '''available location should be a list [(score: int,location: list)]
+                    eg. for 2 hr session [(5,[6,11]),(7,[8,13])]'''
+                allLocations = self.filter(session,self.getTimeTable())
+                val = lambda tup: tup[0]
+                allLocations.sort(key=val)
+
+                if allLocations:
+                    location = allLocations.pop()
+                    self.placeSession(session,location)
+            
+            counter+=1
         
                     
 
