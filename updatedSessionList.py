@@ -94,7 +94,7 @@ lecturer_preferences = {
     "Gilbert Mckinney" : [17, 18, 19],
     "Kade Johnson" : [13, 14, 15, 16, 17],
     "Alyssa Levine" : [11, 12, 13, 14, 15, 16],
-    "Anderson Forbes" : [16, 17, 18, 19],
+    "Anderson Forbes" : [16, 17, 18, 19]
     
 }
 
