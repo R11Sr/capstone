@@ -26,8 +26,8 @@ class Transfer():
         self.timeUtilisationGenome = None """This is to remove"""
         self.placementUrgency = None # eager or lazy placement
         self.MAXIMUM_REQUEUE_ATTEMPTS = None
-        self.CLASH_PERCENT_INDEX = 0.025
-        self.LECTURER_PREF_INDEX = 0.1
+        self.CLASH_PERCENT_INDEX = 0.025 #arbitrary
+        self.LECTURER_PREF_INDEX = 0.1 #arbitrary
         self.allSessions = courseAndSessionListing
         self.placeDict = None
 
@@ -232,8 +232,7 @@ class Transfer():
                 s1Mojor = allcourses[f'{s1.getcourseCode()}'].getMajors()
 
                 # if there exists majors between the current courses(likely students did both) run the kendal Tau
-                for key in existingSessionMajor.keys():
-                    if key in s1Mojor:
+                if any(element in existingSessionMajor for element in s1Mojor):
                         # print(key, "exists in both dictionaries")
                         """
                         YEAR    AMOUNT ENROLLED
@@ -241,8 +240,8 @@ class Transfer():
                         2016        155
                         2015        145
                         """
-                        c1Data = allCoursesRegistration[f'{s1.getcourseCode()}']
-                        c2Data = allCoursesRegistration[f'{existingSessionMajor.getcourseCode()}']
+                        c1Data = allcourses[f'{s1.getcourseCode()}'].getRegistrationAmount()
+                        c2Data = allcourses[f'{existingSessionMajor.getcourseCode()}'].getRegistrationAmount()
                         
                         
                         cai = self.kendalTau(c1Data,c2Data)
@@ -255,9 +254,13 @@ class Transfer():
                         elif cai < 0:
                             cai = abs(cai)
                         else:
-                            cai = 0
+                            cai = 1
                         list_of_cai.append(cai)
-                        return statistics.mean(list_of_cai)
+                else:
+                    cai = 0
+                    list_of_cai.append(0)
+                    
+            return statistics.mean(list_of_cai)
         else:
             return 0
 
@@ -275,7 +278,7 @@ class Transfer():
         4               0.4
         5               0.5
         6               0.6
-    
+       
     """
     def LecturerPref(self,session: Session, location: list)-> float:
         lectPrefTimes = allLecturerTimes[f'{session.facilitator}']

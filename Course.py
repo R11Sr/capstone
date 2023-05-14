@@ -1,6 +1,6 @@
 class Course:
 
-    def __init__(self,courseTitle,courseCode,lectuerName,Components):
+    def __init__(self,courseTitle,courseCode,lectuerName,Components: list):
         """_summary_
         This is the constructor for the Course object. Before sessions can be generated 
         the Course objects must exists. 
@@ -60,8 +60,15 @@ class Course:
     def getRegistrationForYear(self,year):
         return self.registrationData[f'{year}']
     
-    def getMajors(self) -> dict:
-        return self.majors
+    def getMajors(self) -> list:
+        l = []
+        for k,v in self.registrationData:
+            for ele in v[1]:
+                if ele in l:
+                    pass
+                else:
+                    l.append(ele)
+        return l
     
     def getTitle(self):
         return self.courseTitle 
@@ -70,6 +77,13 @@ class Course:
         if bool(self.registrationData):
             return self.registrationData
         return None
+    def getRegistrationAmount(self) -> list:
+        l = []
+        for k,v in self.registrationData:
+            for ele in v[0]:
+                l.append(ele)
+        return l
+        
     
     def setSessions(self,sessionList):
         self.sessions = sessionList
@@ -83,6 +97,8 @@ class Course:
         session.setRegistrationData(self.getRegistrationData)
         self.addSession(session)
 
+    def __repr__(self) -> str:
+        return f"<name:{self.courseTitle}, registrationData: {self.registrationData}>"
         
     
     

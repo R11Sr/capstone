@@ -1,4 +1,5 @@
 import pandas as pd 
+import csv
 
 
 
@@ -144,7 +145,8 @@ import pandas as pd
 
 ###Attempt 6
 ###CoreCoursesSem1
-df = pd.read_csv('MockData.csv')
+sourceFile = '2022.csv'
+df = pd.read_csv(f'{sourceFile}')
 
 # specify the name of the column to count unique values in
 count_column1 = 'CoreCourses_Sem1'
@@ -182,119 +184,148 @@ for i, row in df.iterrows():
                     search_counts[value][search_value] = 0
                 search_counts[value][row[search_column]] = 1
 
-# print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
-print("Unique values and counts in", count_column1, ":")
-for value, count in value_counts.items():
-    search_value_counts = search_counts[value]
-    print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column1, ")")
-    
+file_name = f'courseData-{sourceFile}'
+with open(file_name, mode='w', newline='') as file:
+    # Create a CSV writer object
+    writer = csv.writer(file)
+
+    # print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
+    print("Unique values and counts in", count_column1, ":")
+    for value, count in value_counts.items():
+        search_value_counts = search_counts[value]
+        print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column1, ")")
+        
+        writer.writerows([
+            [value,count,search_value_counts]
+            ])
 
 
 
-####Core Courses Sem 2
+    ####Core Courses Sem 2
 
-# iterate over each row in the dataframe and update the value_counts and search_counts dictionaries
-for i, row in df.iterrows():
-    values = row[count_column2].split(',')
-    for value in values:
-        if value in value_counts:
-            value_counts[value] += 1
-        else:
-            value_counts[value] = 1
-        if row[search_column] in search_values:
-            if value in search_counts:
-                search_counts[value][row[search_column]] += 1
-            else:
-                search_counts[value] = {}
-                for search_value in search_values:
-                    search_counts[value][search_value] = 0
-                search_counts[value][row[search_column]] = 1
-
-# print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
-print("Unique values and counts in", count_column2, ":")
-for value, count in value_counts.items():
-    search_value_counts = search_counts[value]
-    print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column2, ")")
-    
-
-
-####Electives Minor Sem 1
-# iterate over each row in the dataframe and update the value_counts and search_counts dictionaries
-for i, row in df.iterrows():
-    values = row[count_column3].split(',')
-    for value in values:
-        if value in value_counts:
-            value_counts[value] += 1
-        else:
-            value_counts[value] = 1
-        if row[search_column] in search_values:
-            if value in search_counts:
-                search_counts[value][row[search_column]] += 1
-            else:
-                search_counts[value] = {}
-                for search_value in search_values:
-                    search_counts[value][search_value] = 0
-                search_counts[value][row[search_column]] = 1
-
-# print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
-print("Unique values and counts in", count_column3, ":")
-for value, count in value_counts.items():
-    search_value_counts = search_counts[value]
-    print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column3, ")")
-    
-####Electives Minor Sem 2
-# iterate over each row in the dataframe and update the value_counts and search_counts dictionaries
-for i, row in df.iterrows():
-    values = row[count_column4].split(',')
-    for value in values:
-        if value in value_counts:
-            value_counts[value] += 1
-        else:
-            value_counts[value] = 1
-        if row[search_column] in search_values:
-            if value in search_counts:
-                search_counts[value][row[search_column]] += 1
-            else:
-                search_counts[value] = {}
-                for search_value in search_values:
-                    search_counts[value][search_value] = 0
-                search_counts[value][row[search_column]] = 1
-
-# print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
-print("Unique values and counts in", count_column4, ":")
-for value, count in value_counts.items():
-    search_value_counts = search_counts[value]
-    print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column4, ")")
-    
-    
-    
-####Electives Summer Courses
-# iterate over each row in the dataframe and update the value_counts and search_counts dictionaries
-for i, row in df.iterrows():
-    if not pd.isna(row[count_column5]):
-        values = row[count_column5].split(',')
-    if row[search_column] in search_values:
+    # iterate over each row in the dataframe and update the value_counts and search_counts dictionaries
+    for i, row in df.iterrows():
+        values = row[count_column2].split(',')
         for value in values:
             if value in value_counts:
                 value_counts[value] += 1
             else:
                 value_counts[value] = 1
-            if value:
+            if row[search_column] in search_values:
                 if value in search_counts:
                     search_counts[value][row[search_column]] += 1
                 else:
-                    search_counts[value] = {search_value: 0 for search_value in search_values}
+                    search_counts[value] = {}
+                    for search_value in search_values:
+                        search_counts[value][search_value] = 0
                     search_counts[value][row[search_column]] = 1
 
+    # print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
+    print("Unique values and counts in", count_column2, ":")
+    for value, count in value_counts.items():
+        search_value_counts = search_counts[value]
+        print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column2, ")")
+        
+        writer.writerows([
+            [value,count,search_value_counts]
+            ])
 
-# print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
-print("Unique values and counts in", count_column5, ":")
-for value, count in value_counts.items():
-    search_value_counts = {}
-    for search_value in search_values:
-        search_value_counts[search_value] = 0
-    if value in search_counts:
-        for search_value, search_count in search_counts[value].items(): # iterate over the items of the dictionary
-            search_value_counts[search_value] = search_count
-    print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column5, ")")
+
+
+
+    ####Electives Minor Sem 1
+    # iterate over each row in the dataframe and update the value_counts and search_counts dictionaries
+    for i, row in df.iterrows():
+        values = row[count_column3].split(',')
+        for value in values:
+            if value in value_counts:
+                value_counts[value] += 1
+            else:
+                value_counts[value] = 1
+            if row[search_column] in search_values:
+                if value in search_counts:
+                    search_counts[value][row[search_column]] += 1
+                else:
+                    search_counts[value] = {}
+                    for search_value in search_values:
+                        search_counts[value][search_value] = 0
+                    search_counts[value][row[search_column]] = 1
+
+    # print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
+    print("Unique values and counts in", count_column3, ":")
+    for value, count in value_counts.items():
+        search_value_counts = search_counts[value]
+        print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column3, ")")
+        
+        writer.writerows([
+            [value,count,search_value_counts]
+            ])
+
+
+    ####Electives Minor Sem 2
+    # iterate over each row in the dataframe and update the value_counts and search_counts dictionaries
+    for i, row in df.iterrows():
+        values = row[count_column4].split(',')
+        for value in values:
+            if value in value_counts:
+                value_counts[value] += 1
+            else:
+                value_counts[value] = 1
+            if row[search_column] in search_values:
+                if value in search_counts:
+                    search_counts[value][row[search_column]] += 1
+                else:
+                    search_counts[value] = {}
+                    for search_value in search_values:
+                        search_counts[value][search_value] = 0
+                    search_counts[value][row[search_column]] = 1
+
+    # print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
+    print("Unique values and counts in", count_column4, ":")
+    for value, count in value_counts.items():
+        search_value_counts = search_counts[value]
+        print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column4, ")")
+        
+        writer.writerows([
+            [value,count,search_value_counts]
+            ])
+
+
+        
+        
+    ####Electives Summer Courses
+    # iterate over each row in the dataframe and update the value_counts and search_counts dictionaries
+    for i, row in df.iterrows():
+        if not pd.isna(row[count_column5]):
+            values = row[count_column5].split(',')
+        if row[search_column] in search_values:
+            for value in values:
+                if value in value_counts:
+                    value_counts[value] += 1
+                else:
+                    value_counts[value] = 1
+                if value:
+                    if value in search_counts:
+                        search_counts[value][row[search_column]] += 1
+                    else:
+                        search_counts[value] = {search_value: 0 for search_value in search_values}
+                        search_counts[value][row[search_column]] = 1
+
+
+    # print out the unique values and their counts in the count column, as well as how many times each value in the search list was found in the same row as each unique value
+    print("Unique values and counts in", count_column5, ":")
+    for value, count in value_counts.items():
+        search_value_counts = {}
+        for search_value in search_values:
+            search_value_counts[search_value] = 0
+        if value in search_counts:
+            for search_value, search_count in search_counts[value].items(): # iterate over the items of the dictionary
+                search_value_counts[search_value] = search_count
+        print(value, ":", count, "(", search_value_counts, "with a value in", search_column, "in this semester", count_column5, ")")
+
+        writer.writerows([
+            [value,count,search_value_counts]
+            ])
+
+
     
