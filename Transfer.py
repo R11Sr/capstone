@@ -264,11 +264,9 @@ class Transfer():
         else:
             return 0
 
-    def kendalTau(c1Data: dict,c2Data: dict) ->float:
-        tauList = []
-        for key in c1Data:
-            tau, p_value = stats.kendalltau(c1Data[key],c2Data[key])
-            tauList.append(tau)
+    def kendalTau(c1Data: list,c2Data: list) ->float:
+        tau, p_value = stats.kendalltau(c1Data,c2Data)
+        return tau
     
     """Weighting table
         Hrs outside     weight
