@@ -1,5 +1,31 @@
+.bg-purple {
+    background-color: #6c38a0; /* or any other shade of purple you prefer */
+  }
+
+body {
+    padding-top: 5rem;
+} 
+
 .checkbox-group {
     display: grid;
     grid-template-columns: repeat(5, 1fr); /* Display 5 checkboxes per row */
     grid-gap: 10px; /* Add some spacing between checkboxes */
+}
+
+.timetable-container {
+    margin-top: 50px;
+}
+
+.day-header {
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.time-slot {
+    border: 1px solid #ccc;
+    min-height: 50px;
+    padding: 10px;
+    margin-bottom: 10px;
 }
