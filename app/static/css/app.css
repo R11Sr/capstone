@@ -12,20 +12,3 @@ body {
     grid-gap: 10px; /* Add some spacing between checkboxes */
 }
 
-.timetable-container {
-    margin-top: 50px;
-}
-
-.day-header {
-    font-weight: bold;
-    text-align: center;
-    padding: 10px;
-    border: 1px solid #ccc;
-}
-
-.time-slot {
-    border: 1px solid #ccc;
-    min-height: 50px;
-    padding: 10px;
-    margin-bottom: 10px;
-}

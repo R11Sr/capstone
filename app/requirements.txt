@@ -11,3 +11,4 @@ python-dotenv==1.0.0
 Werkzeug==2.3.3
 WTForms==3.0.1
 zipp==3.15.0
+pdfkit==1.0.0
