@@ -29,6 +29,12 @@ Install requirements to run
 ```bash 
 pip install -r requirements.txt
 ```
+
+Then in your terminal, navigate to the "Capstone" folder:
+```bash 
+cd capstone
+```
+Then run the next command:
 ```bash 
 flask --app app --debug run
 ```

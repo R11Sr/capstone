@@ -12,6 +12,7 @@ max requeue attempts
 """
 
 
+
 class Transfer():
     def __init__(self,geneotype:str,courseAndSessionListing: list) -> None:
         self.fifoqueue = None
