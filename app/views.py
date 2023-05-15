@@ -2,8 +2,11 @@ from app import app
 from flask import render_template, flash, request, send_file
 from werkzeug.utils import secure_filename
 from app.forms import CourseForm
-from flask import Flask, render_template, make_response
-import pdfkit
+from flask import Flask, render_template, make_response, Response
+from flask import make_response
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
 
 ###
 # Routing for UWI Time and Place application.
@@ -61,19 +64,19 @@ def download_timetable():
     # ]
     
     timeTable = [
-        [""], ["name: ELET3430-Tutorial-1, capacity: 4, location: Math Room 1 name: COMP3652-Tutorial-1, capacity: 5, location: Math Room 2"], ["name: COMP2171-Seminar-1, capacity: 64, location: SLT1, name: COMP2190-Seminar-1, capacity: 119, location: SLT3"], ["name: COMP3901-Seminar-1, capacity: 19, location: C3 name: INFO2100-Tutorial-1, capacity: 18, location: Math Room 1"], [""],
-        ["name: COMP3801-Tutorial-1, capacity: 26, location : C3 name: GEOG3331-Tutorial-1, capacity: 4, location: GEOG Lecture RM 2"], [""], ["name: COMP3220-Seminar-1, capacity: 136, location: SLT2"], ["name: COMP2171-Seminar-1, capacity: 64, location: C3"], ["name: COMP2140-Seminar-1, capacity: 119, location: SLT3, name: ELET1405-Seminar-1, capacity: 20, location: COMPCLR"],
-        ["name: MATH1151-Seminar-1, capacity: 30, location: Math Room 1, name: GEOG1131-Seminar-1, capacity: 18, location: GEOG Lecture RM 2"], [""], ["name: GEOG1232-Lecture-1, capacity: 3, location: GEOG Lecture RM 1"], ["name: CHEM2111-Tutorial-1,capacity: 4, location: Math Room 2,"], ["name: PHYS1422-Lecture-1, capacity: 21, location: SLT3, <name: MICR2211-Seminar-1, capacity: 19, location: GEOG Lab 3"],
-        ["name: MATH2401-Lecture-1, capacity: 34, location: C3, name: GEOG1232-Seminar-1, capacity: 39, location: GEOG Lecture RM 2"], ["name: MATH3424-Lecture-1, capacity: 10, location: Math Room 2"],  ["name: CHEM2110-Tutorial-1, capacity: 32, location: C3"], ["name: CHEM2402-Tutorial-1, capacity: 27, location: Math Room 1"], ["name: COMP3912-Tutorial-1, capacity: 72, location: C2"],
-        ["name: GEOG2233-Seminar-1, capacity: 19, location: GEOG Lecture 2, name: MATH3405-Lecture-1, capacity: 18, location: Math Room 1"], [""], ["name: MICR1010-Lecture-1, capacity: 28, location: Math Room 2"], ["name: MATH1151-Lecture-1, capacity: 30, location: Math Room 2"], ["name: GEOL2201-Seminar-1, capacity: 26, location: GEOG Lecture RM 2"],
-        ["name: MATH2401-Lecture-1, capacity: 34, location: C3"], [""], [""], ["name: CHEM3010-Seminar-1, capacity: 16, location: Math Room 1"], ["name: CHEM2211-Lecture-1, capacity: 16, location: C3"],
-        [""], ["name: COMP2211-Tutorial-1, capacity: 21, location: C3"], ["name: CHEM3010-Seminar-1,capacity: 16, location: Math Room 1"], ["name: CHEM2011-Seminar-1, session: Seminar, capacity: 37, location: , name: COMP3702-Lecture-1, capacity: 24, location: CompCLR"], [""],
-        ["name: PHYS3341-Lecture-1, capacity: 14, location: Physics Lab"], ["name: COMP3220-Seminar-1, capacity: 136, location: SLT3"], [""], [""], ["name: COMP2802-Lecture-1, capacity: 123, location: SLT3"],
-        ["name: COMP3410-Lecture-1, capacity: 14, location: COMPCLR"], [""], [""], ["name: COMP2140-Lecture-1, capacity: 119, location: SLT1"], ["name: ELET1405-Seminar-1, capacity: 20, location: Math Room 1"],
-        ["name: MICR1010-Seminar-1, capacity: 28, location: ENG Comp Lab"], ["name: COMP2171-Seminar-1, capacity: 64, location: C2"], ["name: CHEM2111-Tutorial-1, capacity: 4, location: Math Room 1"], ["name: SWEN3101-Tutorial-1, capacity: 24, location: C2 name: GEOL2201-Seminar-1, capacity: 26, location: GEOG Lecture RM 1"], [" name: ELET2210-Tutorial-1, capacity: 19, location: C3"],
-        ["name: MATH3424-Seminar-1, capacity: 10, location: Math Room 1"], [""], ["name: GEOG3131-Tutorial-1, capacity: 4, location: GEOG Lecture RM 2,"], ["name: CHEM2011-Seminar-1, capacity: 37, location: GEOG Lab 2 name: PHYS1411-Seminar-1,capacity: 25, location: ENG Comp Lab"], ["name: COMP2201-Seminar-1,capacity: 64, location: C2"],
-        [""], ["name: ELET1405-Seminar-1, capacity: 20, location: GEOG Lab 2"], ["name: GEOL1104-Tutorial-1, capacity: 155, location: SLT2"], [""], ["name: COMP3702-Lecture-1, capacity: 24, location: SLT2"],
-        ["name: CHEM2310-Tutorial-1, capacity: 5, location: C2"], [""], ["name: BIOL2312-Tutorial-1, capacity: 7, location: CompCLR name: MATH2407-Seminar-1, capacity: 22, location: C3"], [""], ["name: GEOG2231-Lecture-1, capacity: 26, location: GEOG Lecture RM 1"]
+        ["name: COMP3801-Tutorial-2, capacity: 28, location : C3, name: ELET3430-Tutorial-2, capacity: 40, location: Math Room 1"], ["name: ELET3430-Tutorial-1, capacity: 40, location: Math Room 1 name: COMP3652-Tutorial-1, capacity: 5, location: Math Room 2"], ["name: COMP2171-Seminar-1, capacity: 64, location: SLT1, name: COMP2190-Seminar-1, capacity: 119, location: SLT3"], ["name: COMP3901-Seminar-1, capacity: 19, location: C3 name: INFO2100-Tutorial-1, capacity: 18, location: Math Room 1"], ["name: COMP3801-Tutorial-3, capacity: 20, location : C3, name: COMP2140-Seminar-1, capacity: 119, location: SLT3"],
+        ["name: COMP3801-Tutorial-1, capacity: 26, location : C3 name: GEOG3331-Tutorial-1, capacity: 4, location: GEOG Lecture RM 2"], ["name: MATH1151-Lecture-1, capacity: 30, location: Math Room 2, name: PHYS1422-Lecture-2, capacity: 51, location: SLT3"], ["name: GEOG1232-Lecture-1, capacity: 3, location: GEOG Lecture RM 1, name: COMP3220-Seminar-1, capacity: 136, location: SLT2"], ["name: COMP2171-Seminar-2, capacity: 64, location: C3, name: COMP3912-Lecture-1, capacity: 72, location: C2"], ["name: COMP2140-Seminar-1, capacity: 119, location: SLT3, name: ELET1405-Seminar-1, capacity: 20, location: COMPCLR"],
+        ["name: MATH1151-Seminar-1, capacity: 30, location: Math Room 1, name: GEOG1131-Seminar-1, capacity: 18, location: GEOG Lecture RM 2"], ["name: MATH1151-Lecture-1, capacity: 30, location: Math Room 2, name: CHEM3010-Lecture-1, capacity: 16, location: Math Room 1"], ["name: GEOG1232-Lecture-1, capacity: 3, location: GEOG Lecture RM 1, name: COMP3220-tutorial-1, capacity: 36, location: CR1"], ["name: CHEM2111-Tutorial-1,capacity: 4, location: Math Room 2, name: COMP3912-Lecture-1, capacity: 72, location: C2"], ["name: PHYS1422-Lecture-1, capacity: 21, location: SLT3, name: MICR2211-Seminar-1, capacity: 19, location: GEOG Lab 3"],
+        ["name: MATH2401-Lecture-1, capacity: 34, location: C3, name: GEOG1232-Seminar-1, capacity: 39, location: GEOG Lecture RM 2"], ["name: MATH3424-Lecture-1, capacity: 10, location: Math Room 2, name: CHEM3010-Lecture-1, capacity: 16, location: Math Room 1"],  ["name: CHEM2110-Tutorial-1, capacity: 32, location: C3, name: CHEM2402-Tutorial-2, capacity: 27, location: Math Room 2"], ["name: CHEM2402-Tutorial-1, capacity: 27, location: Math Room 1, name: COMP2140-Seminar-2, capacity: 119, location: SLT3"], ["name: COMP3912-Tutorial-1, capacity: 72, location: C2, name: COMP2140-Seminar-1, capacity: 119, location: SLT3"],
+        ["name: GEOG2233-Seminar-1, capacity: 19, location: GEOG Lecture 2, name: MATH3405-Lecture-1, capacity: 18, location: Math Room 1"], ["name: CHEM2310-Lecture-1, capacity: 55, location: C2"], ["name: CHEM2310-Lecture-2, capacity: 55, location: C2, name: MICR1010-Lecture-1, capacity: 28, location: Math Room 2"], [""], ["name: GEOL2201-Seminar-1, capacity: 26, location: GEOG Lecture RM 2, name: COMP3912-Tutorial-1, capacity: 72, location: C2"],
+        ["name: MATH2401-Lecture-2, capacity: 34, location: C3, name: PHYS3341-Lecture-1, capacity: 14, location: Physics Lab"], ["name: CHEM2011-Lab-1, capacity: 48, location: GEOG Lab 2, name: COMP3702-Lecture-1, capacity: 24, location: CompCLR"], ["name: CHEM3010-Seminar-1,capacity: 16, location: Math Room 1, name: MICR1010-Lecture-1, capacity: 28, location: Math Room 2"], [""], ["name: CHEM2211-Lecture-1, capacity: 16, location: C3, name: COMP3702-Lecture-1, capacity: 24, location: SLT2"],
+        ["name: PHYS3341-Lecture-1, capacity: 14, location: Physics Lab"], ["name: COMP2211-Tutorial-1, capacity: 21, location: C3"], ["name: CHEM3010-Seminar-1,capacity: 16, location: Math Room 1"], [""], ["name: COMP2140-Seminar-2, capacity: 119, location: SLT3, name: CHEM2211-Lecture-1, capacity: 16, location: C3"],
+        ["name: PHYS3341-Lecture-1, capacity: 14, location: Physics Lab, name: GEOL1104-Lecture-1, capacity: 155, location: SLT2"], ["name: COMP3220-Seminar-1, capacity: 136, location: SLT3, name: COMP2171-Lab-1, capacity: 30, location: CLR"], ["name: COMP2171-Lab-2, capacity: 30, location: CLR"], [""], ["name: COMP2802-Lecture-1, capacity: 123, location: SLT3, name: CHEM2211-Lecture-1, capacity: 16, location: C3"],
+        ["name: COMP3410-Lecture-1, capacity: 14, location: COMPCLR, name: GEOL1104-Lecture-1, capacity: 155, location: SLT2"], ["name: GEOG3131-Lecture-1, capacity: 34, location: GEOG Lecture RM 2, name: COMP2171-Lab-1, capacity: 30, location: CLR"], ["name: COMP2171-Lab-2, capacity: 30, location: CLR"], ["name: COMP2140-Lecture-1, capacity: 119, location: SLT1"], ["name: ELET1405-Seminar-1, capacity: 20, location: Math Room 1, name: COMP2802-Lecture-1, capacity: 123, location: SLT3"],
+        ["name: MICR1010-Seminar-1, capacity: 28, location: ENG Comp Lab, name: GEOL1104-Lecture-1, capacity: 155, location: SLT2"], ["name: COMP2171-Lab-1, capacity: 30, location: CLR, name: GEOL1104-Lecture-1, capacity: 155, location: SLT2"], ["name: CHEM2111-Tutorial-1, capacity: 4, location: Math Room 1"], ["name: SWEN3101-Tutorial-1, capacity: 24, location: C2 name: GEOL2201-Seminar-1, capacity: 26, location: GEOG Lecture RM 1"], [" name: ELET2210-Tutorial-1, capacity: 19, location: C3, name: COMP2201-Seminar-1,capacity: 64, location: C2"],
+        ["name: MATH3424-Seminar-1, capacity: 10, location: Math Room 1, name: MICR1010-Seminar-1, capacity: 28, location: ENG Comp Lab"], ["name: GEOG3131-Lecture-2, capacity: 4, location: GEOG Lecture RM 2, name: COMP2171-Lab-1, capacity: 30, location: CLR"], ["name: GEOG3131-Tutorial-1, capacity: 4, location: GEOG Lecture RM 2, name: GEOL1104-Tutorial-1, capacity: 155, location: SLT2"], ["name: CHEM2011-Seminar-1, capacity: 37, location: GEOG Lab 2, name: PHYS1411-Seminar-1,capacity: 25, location: ENG Comp Lab"], ["name: COMP2201-Seminar-1,capacity: 64, location: C2, name: COMP3702-Lecture-1, capacity: 24, location: SLT2"],
+        ["name: CHEM2310-Tutorial-1, capacity: 5, location: C2"], ["name: ELET1405-Seminar-1, capacity: 20, location: GEOG Lab 2"], ["name: GEOL1104-Tutorial-1, capacity: 155, location: SLT2"], ["name: ELET1405-Seminar-2, capacity: 20, location: GEOG Lab 2"], ["name: COMP3702-Lecture-1, capacity: 24, location: SLT2"],
+        ["name: CHEM2310-Tutorial-1, capacity: 5, location: C2"], ["name: ELET1405-Seminar-1, capacity: 20, location: GEOG Lab 2"], ["name: BIOL2312-Tutorial-1, capacity: 7, location: CompCLR name: MATH2407-Seminar-1, capacity: 22, location: C3"], ["name: ELET1405-Seminar-2, capacity: 20, location: GEOG Lab 2"], ["name: GEOG2231-Lecture-1, capacity: 26, location: GEOG Lecture RM 1"]
     ]
     
     
@@ -102,8 +105,38 @@ def download_timetable():
             if index < len(timeTable):
                 timetable[day][time_slot] = timeTable[index][0]
 
-    return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
+     # Create a new PDF document
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
 
+    # Set the font and font size
+    p.setFont("Helvetica", 12)
+
+    # Calculate the initial position for writing the text
+    x = 50
+    y = 750
+
+    # Set the vertical spacing between timetable entries
+    spacing = 20
+
+    # Iterate over the timetable data and write it to the PDF
+    for i, day in enumerate(days_of_week):
+        for j, time_slot in enumerate(time_slots):
+            timetable_entry = timetable[day][time_slot]
+            if timetable_entry:
+                p.drawString(x, y - (i * spacing), timetable_entry)
+    # Save the PDF document
+    p.save()
+
+    # Move the buffer's cursor position to the beginning
+    buffer.seek(0)
+
+    # Create a Flask response with the PDF data and appropriate headers
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Disposition'] = 'attachment; filename=timetable.pdf'
+    response.headers['Content-Type'] = 'application/pdf'
+
+    return response
 
 
 
