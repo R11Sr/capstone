@@ -106,7 +106,7 @@ class Course:
     
 
 class Session():
-    def __init__(self, facilitator: str,type: str,courseCode: str,capacity: int) -> None:
+    def __init__(self, facilitator: str,type: str,courseCode: str,capacity: int, number: int) -> None:
         #the person who is in charge of administering this session
         self.facilitator = facilitator
 
@@ -124,12 +124,12 @@ class Session():
         #the type of session, must be listed in the component of the course
         self.type = type
 
-        self.name = f'{self.courseCode} - {self.type}'
+        self.name = f'{self.courseCode}-{self.type}-{number}'
         
 
         #The maximum capacity that this session can accomodate given constraints eg. physical lab components
         #for a lab session
-        self.MAXIMUM_CAPACITY = capacity
+        self.capacity = capacity
 
         #room of the session
         self.tentativeRoom =  None
@@ -219,7 +219,7 @@ class Session():
         self.placementAttempts = 0
         
     def __repr__(self) -> str:
-        return f"<name:{self.name}, session{self.getType()}, energy Level{self.getEnergyLevel()}>"
+        return f"<name: {self.name}, session: {self.getType()}, capacity: {self.capacity}>"
 
 
 class Room():

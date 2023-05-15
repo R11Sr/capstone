@@ -6,32 +6,50 @@ from typing import Any
 from Course import *
 from collections import deque
 
+from courseListCreator import *
+from sessionListCreator import *
+from SessionAssign import classroom_capacity
+
+
 """Possible things for UI
 max requeue attempts
+
+Arbirary choices:
+    self.CLASH_PERCENT_INDEX = 0.025 #arbitrary
+    self.LECTURER_PREF_INDEX = 0.1 #arbitrary
 
 """
 
 
 class Transfer():
-    def __init__(self,geneotype:str,courseAndSessionListing: list) -> None:
+    def __init__(self,geneotype:str) -> None:
         self.fifoqueue = None
         self.deque = None
         self.priorityqueue = None
         self.geneotype = geneotype
         self.timeTable = None
         self.lecturePrefGeneome = None
-        self.clashGenone = None
+        self.clashGenome = None
         self.roomProximityGenome = None
         self.CAIgenome = None
         self.CAIdecimal = None
-        self.timeUtilisationGenome = None """This is to remove"""
+        self.ClashConstraintPercentage = None
         self.placementUrgency = None # eager or lazy placement
         self.MAXIMUM_REQUEUE_ATTEMPTS = None
-        self.CLASH_PERCENT_INDEX = 0.025 #arbitrary
+        self.CLASH_PERCENT_INDEX = 0.25 #arbitrary
         self.LECTURER_PREF_INDEX = 0.1 #arbitrary
-        self.allSessions = courseAndSessionListing
+        self.allSessions = None
+        self.AllsessionRegistration = None
         self.placeDict = None
-
+        self.costOfAllPlacements ={}
+        """
+        All courses is a dictionary of all Course objects
+        output like: {'SWEN3145': <name:SWEN3145, registrationData: 
+        {'2019': [348, ['INFO', 'SWEN', 'COMP']], '2020': [414, ['SWEN', 'COMP', 'INFO']],
+          '2021': [321, ['INFO', 'SWEN', 'COMP']], '2022': [342, ['COMP', 'INFO', 'SWEN']]}>,.....
+        """
+        self.AllCourses= None
+        
 
         
 
@@ -40,31 +58,41 @@ class Transfer():
         Description of the Queues:
         Back ->[*,*,*,*,*,*,*,*,*,*,*,*,*,*] <- Front
     """
- 
+    
+
     def setAttibutes(self):
-        self.lecturePrefGeneome = self.geneotype[:3]
-        self.clashGenone = self.geneotype[3:15] """Will need to reduce to 4 bits """
-        self.roomProximityGenome = self.geneotype[15:18]
+        self.lecturePrefGeneome = self.geneotype[:8]
+
+        self.clashGenome = self.geneotype[8:14] 
+        self.roomProximityGenome = self.geneotype[14:19]
         #CAI,16 bit gene sequence interpreted as  sign(0)0.0000 0000 0000 00
-        self.CAIgenome = self.geneotype[18:34]
+        self.CAIgenome = self.geneotype[19:35]
         self.CAIconstraintDecimal = None
         self.setDecimalCAI()
-        self.placementPlan=self.geneotype[34:37]
-        self.placementUrgency= self.geneotype[37:42]
+        self.placementPlan=self.geneotype[35:38]
+        # [37:43]
+        self.placementUrgency= self.geneotype[38:]
         self.setMaxRequeueAttempts()
-        self.timeUtilisationGenome = self.geneotype[42:]
+        self.ClashConstraintRange = self.setClashConstraintPercentage()
+        
+    def setClashConstraintPercentage(self):
+        clashbits = self.clashgenome
+        self.ClashConstraintPercentage = int(clashbits.lstrip('0'), 2)
+
 
 
 
     def makeplacementPlans(self):
         self.placeDict  ={}
-        self.placeDict['100'] = 'PriorityQLimiting'
         self.placeDict['000'] = 'PriorityQNonLimitingConstraints'
-        self.placeDict['101'] = 'FIFOQLimiting'
         self.placeDict['001'] = 'FIFOQNonLimitingConstraints'
-        self.placeDict['110'] = 'DequeQLimiting'  #tentative
         self.placeDict['010'] = 'DequeQNonLimitingConstraints'   #tentative
+        self.placeDict['011'] = 'PriorityQLimiting'
+        self.placeDict['100'] = 'FIFOQLimiting'
+        self.placeDict['101'] = 'DequeQLimiting'  #tentative
 
+
+        
     """_summary_
         Responsible for setting the total number of attempts that can be made to requeue a session
         if conditions are unfavorable for its placement.
@@ -83,6 +111,7 @@ class Transfer():
     # makes it easier when running a minimising GA
     def setDecimalCAI(self):
         gene = self.CAIgenome
+
         def parse_bin(s):
             return int(s[1:], 2) / 2.**(len(s) - 1)
         
@@ -95,8 +124,6 @@ class Transfer():
         else:
             self.CAIconstraintDecimal = - float(f'{gene[1]}') - parse_bin(fraction)
         
-
-
     
     def isFIFOQueueAvailable(self)-> bool:
         if self.fifoqueue:
@@ -112,13 +139,7 @@ class Transfer():
         if self.priority:
             return True
         return False
-    def buildFIFOQueue(self,courseListing) ->None:
-        
-        if self.FIFOQueueAvailable():
-            for course in courseListing:
-                allSessions = course.getSessions()
-                for session in allSessions:
-                    self.enqueueFIFO(session)
+
 
         
 
@@ -131,12 +152,7 @@ class Transfer():
     def buildDeque(self) -> None:
         self.deque  = deque()
 
-    '''These commented out methods are not supported by the Queue object from Python/Lib'''
-    # def front(self):
-    #     pass
-    # def back(self):
-    #     pass
-
+    
     # This method may not be needed. But just in case. It is there as a wrapper class
     def enqueuePriority(self,priority: int, session: Session) ->None:
         if self.isPriorityQueueAvailable():
@@ -160,11 +176,11 @@ class Transfer():
             return True
         return False
  
-    def dequeRequeueLeft(self,session: Session) -> None:
+    def RequeueDequeLeft(self,session: Session) -> None:
         if self.isDequeAvailable():
             self.appendleft(session)
 
-    def dequeRequeueRight(self,session: Session) -> None:
+    def RequeueDequeRight(self,session: Session) -> None:
         if self.isDequeAvailable():
             self.append(session)
 
@@ -196,8 +212,6 @@ class Transfer():
         19    [56],[57],[58],[59],[60],
         20    [61],[62],[63],[64],[65],
         ]
-            Remember to block out CLUB time 
-            Remember to block out time for other DEPT
     
     """
 
@@ -230,8 +244,12 @@ class Transfer():
     
     def inLecturerPref(self,session: Session, location: int)-> bool:
         pass
+
     def inClashConstraint(self,session: Session, location: int)-> bool:
-        pass
+        if self.ClashConstraint(session,location)[1] <= self.ClashConstraintPercentage:
+            return True
+        return False
+        
     def inRoomProximity(self, session: Session, location: int) -> bool:
         pass
 
@@ -249,20 +267,22 @@ class Transfer():
                 COMP1161    Information technology,Computer Science
                 .......     ........
                 """
-                existingSessionMajor = allcourses[f'{existingSession.getcourseCode()}'].getMajors()
-                s1Mojor = allcourses[f'{s1.getcourseCode()}'].getMajors()
+                existingSessionMajor = self.AllCourses[f'{existingSession.getcourseCode()}'].getMajors()
+                s1Mojor = self.AllCourses[f'{s1.getcourseCode()}'].getMajors()
 
                 # if there exists majors between the current courses(likely students did both) run the kendal Tau
                 if any(element in existingSessionMajor for element in s1Mojor):
                         # print(key, "exists in both dictionaries")
                         """
+                        RegistrationAmount():
+                        list of amount order by year [155,145,185]
                         YEAR    AMOUNT ENROLLED
-                        2017        185
                         2016        155
                         2015        145
+                        2017        185
                         """
-                        c1Data = allcourses[f'{s1.getcourseCode()}'].getRegistrationAmount()
-                        c2Data = allcourses[f'{existingSessionMajor.getcourseCode()}'].getRegistrationAmount()
+                        c1Data = self.AllCourses[f'{s1.getcourseCode()}'].getRegistrationAmount()
+                        c2Data = self.AllCourses[f'{existingSessionMajor.getcourseCode()}'].getRegistrationAmount()
                         
                         
                         cai = self.kendalTau(c1Data,c2Data)
@@ -298,9 +318,10 @@ class Transfer():
         5               0.5
         6               0.6
        
+        implemented by using self.LECTURER_PREF_INDEX
     """
     def LecturerPref(self,session: Session, location: list)-> float:
-        lectPrefTimes = allLecturerTimes[f'{session.facilitator}']
+        lectPrefTimes = lecturer_preferences[f'{session.facilitator}']
         lectPrefTimes.sort()
         timeDiff = 0
 
@@ -402,6 +423,11 @@ class Transfer():
 
         return timedict
 
+    def makeRoomListing(self)  ->list:
+        rooms =[]
+        for k,v in classroom_capacity.items():
+            rooms.append(Room(k,int(v)))
+        return rooms
 
     """
     What percentage of students of that slot hav clashes 
@@ -410,17 +436,21 @@ class Transfer():
 
     WEIGHTING TABLE FOR % OF STUDENT CLASH
       %             weighting
-    0  - 5          0 -0.125
-    6  - 10         0.150 - 0.250
-    11 - 15         0.275 - 0.375
-    16 - 20         0.400 - 0.500
-    21 - 25         0.525 - 0.625
-    26 - 30         0.650 - 0.750
-    31 - 35         0.775 - 0.875
-    36 - 40         0.900 - 1.000
-    > 40            2.000
-
+    0  - 5          0 -1.25
+    6  - 10         1.50 - 2.50
+    11 - 15         2.75 - 3.75
+    16 - 20         4.00 - 5.00
+    21 - 25         5.25 - 6.25
+    26 - 30         6.50 - 7.50
+    31 - 35         7.75 - 8.75
+    36 - 40         9.00 - 10.00
+    > 40            20.00
     
+    implemented with CLASH_PERCENT_INDEX
+    percentage bit reprentation 0000000, 2^6
+    can do int(bitrepresentation,2) to get decimal
+    
+    -------For Future Implementation -----------
     Weighting           Clash Meaning
     100.00              Lecturer or room having Simultaneous classes
     0.90                Lab to Lecture
@@ -432,26 +462,22 @@ class Transfer():
     0.30                Seminar to Tutorial
     0.20                Tutorial to Tutorial
     0.00                No Clashes
+    -------------------------------------------
 
-
-    ENROLLMENT FILE(csv) FOR EACH SESSION to perform the analysis of those in this and the other sessions
-    in the spot
-    6023332
-    6293333
-    ......
+    Used 'Mock data updated' to enroll students in sessions
     """
-    def ClashConstraint(self,session: Session, location: int)-> float:
+    def ClashConstraint(self,session: Session, location: int)-> tuple:
         clashSet = set() # number of students with the clashes
         total = 0
         listFacilitators =[]
         clashPercentScore = 0.00
-        sessionEnrolled = set(registration[f'{sessionEnrolled.name}'])
+        sessionEnrolled = set(self.AllsessionRegistration[f'{session.name}'])
 
 
         for existingSession in self.getTimeTable[location]:
             total += len(sessionEnrolled)
 
-            existingSessionEnrolled = set(registration[f'{existingSession.name}'])
+            existingSessionEnrolled = set(self.AllsessionRegistration[f'{existingSession.name}'])
             listFacilitators.append(existingSessionEnrolled.facilitator)
             total += len(existingSessionEnrolled)
 
@@ -464,21 +490,22 @@ class Transfer():
 
         # to adhere to weighting table above
         if clashPercentage > 40:
-            clashPercentScore = 2.0
+            clashPercentScore = 20.0
 
         #check if a facilitator will have more than 1 session in that slot
         if session.facilitator in listFacilitators:
-            clashPercentScore = 100.00 
+            clashPercentScore = 1000.00 
 
         # also check if sessions clash in rooms
         """Rooms with special requirements are not taking into consideration at this time"""
         
         """Select Room for Session"""
-        for room in listofRooms:
+        for room in self.ListingofRooms:
             if room.capacity < len(sessionEnrolled):
                 pass
             else:
                 flag = []
+                #ensure room is not in use before assigning it
                 for existingSession in self.getTimeTable[location]:
                     if existingSession.approvedRoom == room.name:
                         flag.append(True)
@@ -487,13 +514,13 @@ class Transfer():
                 if not all(flag):
                     session.tentativeRoom = room.name
 
-        return clashPercentScore
+        return clashPercentScore,clashPercentage
         
              
-             
+    """---------To be Implemented------"""       
     def RoomProximity(self, session: Session, location: int) -> float:
-        pass
-
+        return 0
+    """------------------------------------"""
     def filter(self,session: Session) -> list:
 
         placementPoints=[]
@@ -504,7 +531,7 @@ class Transfer():
             if self.isValid(session.getTimeSpan(),spot):
                 cai = self.CAI(session,spot)
                 LecturerPref = self.LecturerPref(session,spot)
-                clash = self.clash(session,spot)
+                clash = self.ClashConstraint(session,spot)[0]
                 RoomProximity = self.RoomProximity(session,spot)
 
                 total = cai + LecturerPref + clash + RoomProximity
@@ -515,15 +542,21 @@ class Transfer():
 
 
 
-    def placeSession(self,session: Session,location= int) -> bool:
+    def placeSession(self,session: Session,location: int,cost: float) -> bool:
         length = session.getTimeSpan()
         
         if self.isValid(length,location):
             session.useEnergy()
+            session.approvedRoom = session.tentativeRoom
             for time in range(0,length): 
                 '''Add the price paid in this session'''  
-                             
+                       
                 self.timeTable[location + 5* time].append(session)
+                if location in self.costOfAllPlacements:
+                    self.costOfAllPlacements[location].append(cost)
+                else:
+                    self.costOfAllPlacements[location] = []
+                    self.costOfAllPlacements[location].append(cost)
         else:
             session.useEnergy()
 
@@ -531,6 +564,10 @@ class Transfer():
         flag = []
         for time in range(0,length):
             try:
+                #if the location is in club time
+                if location in [39,44,49,54,59,64]:
+                    flag.append(False)
+
                 self.timeTable[location + 5* time]
                 flag.append(True)
             except IndexError:
@@ -539,26 +576,16 @@ class Transfer():
         return all(flag)
             
 
-    def execute(self) ->list:
-
-        self.setAttibutes()
-        self.generateTimetable()
-        self.makeplacementPlans()
-
-        if self.getPlacement() in self.placeDict:
-            self.placeDict[self.getPlacement()]()
-        else:
-            """ The placement gene is invalid and this time table should be discarded"""
 
 
     def checkAllHardConstraint(self,session: Session, spot: int) -> list:
             cai = self.inCAI(session,spot)
-            clash = self.inclash(session,spot)
+            clash = self.inClashConstraint(session,spot)
 
             return [cai,clash]
             
         
-    def PriorityQLimiting(self) -> list:
+    def PriorityQLimiting(self) -> None:
         self.buildPriorityQueue()
 
         if self.isPriorityQueueAvailable():
@@ -575,20 +602,20 @@ class Transfer():
             allLocations.sort(key=val)
 
             if allLocations:
-                location = allLocations.pop()
+                cost,location = allLocations.pop()
                 if all(self.checkAllHardConstraint(session,location)): 
-                    self.placeSession(session,location)
+                    self.placeSession(session,location,cost)
                 elif session.getAttempts() >= self.getMaxRequeueAttempts:
-                    self.placeSession(session,location)
+                    self.placeSession(session,location,cost)
                 else:
                     session.useAttempt()
                     self.enqueuePriority(self,session.getPriority(),session)
 
-        return self.priorityqueue
+        
       
 
             
-    def PriorityQNonLimitingConstraints(self) -> list:
+    def PriorityQNonLimitingConstraints(self) -> None:
         self.buildPriorityQueue()
 
         if self.isPriorityQueueAvailable():
@@ -605,16 +632,16 @@ class Transfer():
             allLocations.sort(key=val)
 
             if allLocations:
-                location = allLocations.pop()
-                self.placeSession(session,location)
+                cost,location = allLocations.pop()
+                self.placeSession(session,location,cost)
 
 
         return self.priorityqueue
 
 
         
-    def FIFOQLimiting(self )-> list:
-        self.buildFIFOQueue(self.allcourses)
+    def FIFOQLimiting(self )-> None:
+        self.buildFIFOQueue()
         
         while not self.fifoqueue.empty():
             session = self.fifoqueue.get()
@@ -626,18 +653,18 @@ class Transfer():
             allLocations.sort(key=val)
 
             if allLocations:
-                location = allLocations.pop()
+                cost,location = allLocations.pop()
                 if all(self.checkAllHardConstraint(session,location)): 
-                    self.placeSession(session,location)
+                    self.placeSession(session,location,cost)
                 elif session.getAttempts() >= self.getMaxRequeueAttempts:
-                    self.placeSession(session,location)
+                    self.placeSession(session,location,cost)
                 else:
                     session.useAttempt()
                     self.enqueueFIFO(self,session)
 
 
-    def FIFOQNonLimitingConstraints(self) -> list:
-        self.buildFIFOQueue(self.allcourses)
+    def FIFOQNonLimitingConstraints(self) -> None:
+        self.buildFIFOQueue()
         
         while not self.fifoqueue.empty():
             session = self.fifoqueue.get()
@@ -649,8 +676,8 @@ class Transfer():
             allLocations.sort(key=val)
 
             if allLocations:
-                location = allLocations.pop()
-                self.placeSession(session,location)
+                cost,location = allLocations.pop()
+                self.placeSession(session,location,cost)
 
     """
     https://docs.python.org/3/library/collections.html#deque-objects
@@ -659,7 +686,7 @@ class Transfer():
     all other sessions are placed to the right.
 
     """
-    def DequeQLimiting(self) -> list:
+    def DequeQLimiting(self) -> None:
         self.buildDeque()
         counter = 0
 
@@ -671,6 +698,7 @@ class Transfer():
                 self.deque.append(session)
         
         while not self.isDequeEmpty():
+
             #This is to simulate taking 1 from the left(lecturer) and in the next iteration
             #take 1 session from the right(tut,seminar or lab)
 
@@ -685,11 +713,11 @@ class Transfer():
                 allLocations.sort(key=val)
 
                 if allLocations:
-                    location = allLocations.pop()
+                    cost,location = allLocations.pop()
                     if all(self.checkAllHardConstraint(session,location)): 
-                        self.placeSession(session,location)
+                        self.placeSession(session,location,cost)
                     elif session.getAttempts() >= self.getMaxRequeueAttempts:
-                        self.placeSession(session,location)
+                        self.placeSession(session,location,cost)
                     else:
                         session.useAttempt()
                         self.dequeRequeueLeft(self,session)
@@ -704,11 +732,11 @@ class Transfer():
                 allLocations.sort(key=val)
 
                 if allLocations:
-                    location = allLocations.pop()
+                    cost,location = allLocations.pop()
                     if all(self.checkAllHardConstraint(session,location)): 
-                        self.placeSession(session,location)
+                        self.placeSession(session,location,cost)
                     elif session.getAttempts() >= self.getMaxRequeueAttempts:
-                        self.placeSession(session,location)
+                        self.placeSession(session,location,cost)
                     else:
                         session.useAttempt()
                         self.dequeRequeueRight(self,session)
@@ -717,7 +745,7 @@ class Transfer():
             counter+=1
 
 
-    def DequeQNonLimitingConstraints(self) -> list :
+    def DequeQNonLimitingConstraints(self) -> None :
         self.buildDeque()
         counter = 0
 
@@ -743,8 +771,8 @@ class Transfer():
                 allLocations.sort(key=val)
 
                 if allLocations:
-                    location = allLocations.pop()
-                    self.placeSession(session,location)
+                    cost,location = allLocations.pop()
+                    self.placeSession(session,location,cost)
 
             #from Right
             else:
@@ -757,12 +785,29 @@ class Transfer():
                 allLocations.sort(key=val)
 
                 if allLocations:
-                    location = allLocations.pop()
-                    self.placeSession(session,location)
+                    cost,location = allLocations.pop()
+                    self.placeSession(session,location,cost)
             
             counter+=1
         
                     
 
+def execute(self) ->None:
+    genome =''
+    t = Transfer(genome)
+    t.setAttibutes()
+    t.generateTimetable()
+    t.makeplacementPlans()
+    t.AllCourses = getAllcourses()
+    t.allSessions = getAllSessions()
+    t.AllsessionRegistration = makeRegistrationData()
+    
+    t.ListingofRooms = t.makeRoomListing()
+    if t.getPlacement() in Transfer.placeDict:
+        t.placeDict[self.getPlacement()]()
+        print(t.getTimeTable())
+    else:
+        print('Invalid Gene Received')
+    
 
-        
+execute()

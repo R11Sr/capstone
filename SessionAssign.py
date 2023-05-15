@@ -7,21 +7,21 @@ fileName = 'CurrentRegistration.csv'
 df = pd.read_csv('Mock_Data_Updated.csv')
 # define capacity dictionaries
 classroom_capacity = {
-    "CompCLR": 50,
-    "CompLab": 80,
-    "GEOG Lab 2": 80,
-    "GEOG Lecture RM 1": 50,
-    "GEOG Lecture RM 2": 50,
-    "GEOG Lab 3": 80,
-    "Physics Lab": 100,
-    "SLT1": 500,
-    "SLT2": 300,
-    "SLT3": 250,
-    "ENG Comp Lab": 80,
+    "CompCLR": 40,
+    "CompLab": 45,
+    "GEOG Lab 2": 20,
+    "GEOG Lecture RM 1": 40,
+    "GEOG Lecture RM 2": 40,
+    "GEOG Lab 3": 20,
+    "Physics Lab": 20,
+    "SLT1": 170,
+    "SLT2": 160,
+    "SLT3": 155,
+    "ENG Comp Lab": 28,
     "Math Room 1": 30,
     "Math Room 2": 30,
-    "C2": 100,
-    "C3": 80,
+    "C2": 80,
+    "C3": 60,
     "C5": 200
 }
 
