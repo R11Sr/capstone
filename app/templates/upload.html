@@ -15,10 +15,6 @@
             <form action="/" method="POST" enctype="multipart/form-data">
                 {{ form.csrf_token }}
         
-                <div class="mb-3">
-                    <label class="form-label fw-bold">{{ form.courses_file.label }}</label>
-                    {{ form.courses_file (class="form-control")}}
-                </div>
         
                 <h2>Add Additional Course to CSV</h2>
                 
@@ -33,28 +29,28 @@
                         {{ form.course_code (class="form-control")}}
                     </div>
         
-                    <div class="col">
-                        <label class="form-label fw-bold">{{ form.lecturer.label }}</label>
-                        {{ form.lecturer (class="form-control")}}
-                    </div>
         
                 </div>
         
-                <div class="row">
-                    <div class="col">
-                        <label class="form-label fw-bold">{{ form.first_name.label }}</label>
-                        {{ form.first_name (class="form-control")}}
-                    </div>
-                    
-                    <div class="col">
-                        <label class="form-label fw-bold">{{ form.last_name.label }}</label>
-                        {{ form.last_name (class="form-control")}}
-                    </div>
-        
-                </div>
-        
+                        
                 <div class="form-group">
                     <h2>Lecturer Time Preferences</h2>
+
+                    <div class="row">
+                        <div class="col">
+                            <label class="form-label fw-bold">{{ form.first_name.label }}</label>
+                            {{ form.first_name (class="form-control")}}
+                        </div>
+                        
+                        <div class="col">
+                            <label class="form-label fw-bold">{{ form.last_name.label }}</label>
+                            {{ form.last_name (class="form-control")}}
+                        </div>
+            
+                    </div>
+
+                    
+                    <p>Note that the time slots must be selected sequentially (Eg: 1,2,3 or 15,16,17)</p>
                     <br>
                     <div class="checkbox-group">
                         {% for choice in form.time_preferences %}

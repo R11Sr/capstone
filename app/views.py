@@ -1,6 +1,5 @@
 from app import app
 from flask import render_template, flash, request, send_file, redirect, url_for
-from werkzeug.utils import secure_filename
 from app.forms import CourseForm
 from flask import Flask, render_template, make_response, Response
 from flask import make_response
@@ -11,40 +10,96 @@ import pdfkit
 import os
 import tempfile
 import requests
+import random
+import csv
 
 ###
 # Routing for UWI Time and Place application.
 ###
+
+
 
 @app.route('/', methods=['GET', 'POST'])
 def form():
     form = CourseForm()
 
     if form.validate_on_submit():
-        courses_file = request.files['fileUpload']
-        course_title = request.form['courseTitle']
-        course_code =  request.form['courseCode']
-        lecturer = request.form['lecturer']
-        first_name = request.form['firstName']
-        last_name = request.form['lastName']
-        time_preferences = request.form.getlist('timePreferences')
-        
-        filename = secure_filename(courses_file.filename)
-        
-        
-        
-        flash('Property Information Successfully Added!', 'success')
+        course_title = form.course_title.data
+        course_code =  form.course_code.data
+        first_name = form.first_name.data
+        last_name = form.last_name.data
+        time_preferences = form.time_preferences.data  
+        full_name = first_name + last_name 
 
-        # Return a response or redirect to another page
-        return 'Form submitted successfully!'
+        # flash(f'Course Title: {course_title}')
+        # flash(f'Course Code: {course_code}')
+        # flash(f'First Name: {first_name}')
+        # flash(f'Last Name: {last_name}')
+        # flash(f'Time Preferences: {", ".join(time_preferences)}')
+        flash('New Course Information Successfully Added!', 'success')
+    
+    flash_errors(form)
+    
+    
+
+    first = random.randint(116, 256)
+    second, third, fourth = generate_numbers(first)
+    course1= "INFO"
+    course2= "COMP"
+    course3= "SWEN"
+    
+    file_exists1 = os.path.exists('form_course.csv')
+    try:
+        with open('form_course.csv', 'a', newline='') as csvfile:
+            writer1 = csv.writer(csvfile)
+            if file_exists1:
+                writer1.writerow([course_code, first, course1, second, course2, third, course3, fourth])
+            else:
+                
+                writer1.writerow([course_code, first, course1, second, course2, third, course3, fourth])
+                
+    except Exception as e:
+        # flash('An error occurred while writing to the CSV file. Please try again.', 'error')
+        error_message = f"An error occurred while writing to the CSV file: {str(e)}"
+        flash(error_message, 'error')
+    
+    # file_exists2 = os.path.exists('form_registration.csv')
+    # values = generate_values(first)
+    # try:
+    #     values = generate_values(first)
+
+    #     with open('form_registration.csv', 'a', newline='') as csvfile:
+    #         writer2 = csv.writer(csvfile)
+    #         if file_exists2:
+    #             writer2.writerow([course_code, first, values['Lecture'], values['Tutorial'], values.get('Seminar', ''), values.get('Lab', '')])
+    #         else:
+    #             writer2.writerow(['Course Code', 'First', 'Lecture', 'Tutorial', 'Seminar', 'Lab'])
+    #             writer2.writerow([course_code, first, values['Lecture'], values['Tutorial'], values.get('Seminar', ''), values.get('Lab', '')])
+            
+    # except Exception as e:
+    #     error_message = f"An error occurred while writing to the CSV file: {str(e)}"
+    #     flash(error_message, 'error')
+
+    file_exists3 = os.path.exists('lecturer_pref.csv')
+    try:
+        with open('lecturer_pref.csv', 'a', newline='') as csvfile:
+            writer3 = csv.writer(csvfile)
+            if file_exists3:
+                writer3.writerow([[full_name], time_preferences])
+            else:
+                
+                writer3.writerow([[full_name], time_preferences])
+                
+    except Exception as e:
+        # flash('An error occurred while writing to the CSV file. Please try again.', 'error')
+        error_message = f"An error occurred while writing to the CSV file: {str(e)}"
+        flash(error_message, 'error')
+    
+    clear_form(form)
 
     return render_template('upload.html', form=form)
 
 
-output_folder = 'timetables'  # Specify the output folder as "timetables"
-
-# Global counter for keeping track of downloaded files
-download_counter = 0
 
 days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 time_slots = [
@@ -56,8 +111,6 @@ time_slots = [
 @app.route('/download')
 def download_timetable():
 
-
-    
     # timeTable = [
     #     ["1"], ["2"], ["3"], ["4"], ["5"],
     #     ["6"], ["7"], ["8"], ["9"], ["10"],
@@ -121,67 +174,44 @@ def download_timetable():
     return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
 
 
-
 @app.route('/download/pdf')
 def download_pdf():
-    # Working code 1 - give timetable not in folder
-    # timetable_url = 'http://127.0.0.1:8080/download'  # Replace with the URL of your timetable template
-    # css_file_path = os.path.join(app.root_path, 'static/css/app.css')
-
-    # # Fetch the HTML content of the timetable URL
-    # response = requests.get(timetable_url)
-    # rendered_html = response.text
-
-    # # Save the rendered HTML to a temporary file
-    # with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as temp_file:
-    #     temp_file.write(rendered_html.encode('utf-8'))
-    #     temp_file.flush()
-    #     temp_html_path = temp_file.name
-
-    #     # Generate the PDF using the URL
-    #     pdfkit.from_file(temp_html_path, 'timetable.pdf', css=css_file_path)
-
-    # # Remove the temporary HTML file
-    # os.remove(temp_html_path)
-
-    # return send_file('timetable.pdf', as_attachment=True)
     
+    try:
+        timetable_url = 'http://127.0.0.1:8080/download'  #URL of your timetable template
+        css_file_path = os.path.join(app.root_path, 'static/css/app.css')
+
+        # Fetch the HTML content of the timetable URL
+        response = requests.get(timetable_url)
+        rendered_html = response.text
+
+        # Generate the PDF using the URL
+        output_file_path = generate_output_file_path()
+        pdfkit.from_string(rendered_html, output_file_path, css=css_file_path)
+
+        flash('Timetable has been downloaded! Please check your Timetable Folder', 'success')
+        return send_file(output_file_path, as_attachment=True)
     
-    # Working code - timetable in folder and download multiple
-    timetable_url = 'http://127.0.0.1:8080/download'  # Replace with the URL of your timetable template
-    css_file_path = os.path.join(app.root_path, 'static/css/app.css')
-
-    # Fetch the HTML content of the timetable URL
-    response = requests.get(timetable_url)
-    rendered_html = response.text
-
-    # Generate the PDF using the URL
-    output_file_path = generate_output_file_path()
-    pdfkit.from_string(rendered_html, output_file_path, css=css_file_path)
+    except OSError:
+        flash('Timetable has been downloaded! Please check your Timetable Folder', 'success')
+        flash('An error occurred while generating the PDF.', 'danger')
+        # Redirect the user back to the download page
+        return redirect(url_for('download_timetable'))
 
 
-    # return send_file(output_file_path, as_attachment=True)
-    # Redirect the user back to the download page
-    return redirect(url_for('download_timetable'))
-    
-    
 
+# UWI Time and Place Functions
+output_folder = 'timetables'  # Specify the output folder as "timetables"
 
+# Global counter for keeping track of downloaded files
+download_counter = 0    
 def generate_output_file_path():
         global download_counter
         download_counter += 1
         file_name = f"timetable{download_counter}.pdf"
-        folder_path = os.path.join(app.root_path, output_folder)  # Change "downloads" to the desired folder name
+        folder_path = os.path.join(app.root_path, output_folder)  
         os.makedirs(folder_path, exist_ok=True)
         return os.path.join(folder_path, file_name)
-    
-    
-
-# Your existing route for rendering the timetable HTML
-@app.route('/timetable')
-def render_timetable():
-    timetable = download_timetable()  # Replace with your function that generates the timetable
-    return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
 
 # Display Flask WTF errors as Flash messages
 def flash_errors(form):
@@ -191,3 +221,45 @@ def flash_errors(form):
                 getattr(form, field).label.text,
                 error
             ), 'danger')
+
+# Clear course form 
+def clear_form(form):
+    form.process(request.form)
+    for field in form:
+        field.data = ''
+        
+        
+def generate_numbers(total):
+    num1 = random.randint(1, total - 2)
+    num2 = random.randint(1, total - num1 - 1)
+    num3 = total - num1 - num2
+    return num1, num2, num3
+
+def generate_values(total):
+    print(f"Generating values for total={total}")
+    lecture = random.choices(range(1, 8), k=random.randint(1, 7))
+    tutorial = random.choices(range(1, 8), k=random.randint(1, 7))
+    
+    if random.choice([True, False]):
+        seminar = []
+        while sum(seminar) != total:
+            seminar = random.choices(range(1, 8), k=random.randint(1, 7))
+        values = {
+            'Lecture': lecture,
+            'Tutorial': tutorial,
+            'Seminar': seminar
+        }
+    else:
+        lab = []
+        while sum(lab) != total:
+            lab = random.choices(range(1, 8), k=random.randint(1, 7))
+        values = {
+            'Lecture': lecture,
+            'Tutorial': tutorial,
+            'Lab': lab
+        }
+    
+    return values
+
+    
+    
