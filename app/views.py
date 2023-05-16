@@ -66,7 +66,7 @@ def form():
     except Exception as e:
         # flash('An error occurred while writing to the CSV file. Please try again.', 'error')
         error_message = f"An error occurred while writing to the CSV file: {str(e)}"
-        flash(error_message, 'error')
+        # flash(error_message, 'error')
     
     # file_exists2 = os.path.exists('form_registration.csv')
     # values = generate_values(first)
@@ -110,7 +110,7 @@ def form():
     except Exception as e:
         # flash('An error occurred while writing to the CSV file. Please try again.', 'error')
         error_message = f"An error occurred while writing to the CSV file: {str(e)}"
-        flash(error_message, 'error')
+        # flash(error_message, 'error')
     
     clear_form(form)
 
@@ -152,7 +152,7 @@ def paramsform():
     except Exception as e:
         # flash('An error occurred while writing to the CSV file. Please try again.', 'error')
         error_message = f"An error occurred while writing to the CSV file: {str(e)}"
-        flash(error_message, 'error')
+        # flash(error_message, 'error')
     
     
     clear_form(pform)
