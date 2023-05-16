@@ -23,9 +23,9 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Time</th>
+                    <th  style="background-color:  #CBC3E3;">Time</th>
                     {% for day in days_of_week %}
-                        <th>{{ day }}</th>
+                        <th  style="background-color:  #CBC3E3;">{{ day }}</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -50,7 +50,7 @@
         
 </div>
 
-<a href="{{ url_for('download_timetable') }}" class="btn btn-primary">Download PDF</a>
+<a href="{{ url_for('download_pdf') }}" class="btn btn-primary">Download PDF</a>
 
 {% endblock %}
 
