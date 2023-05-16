@@ -16,7 +16,6 @@ max requeue attempts
 
 Arbirary choices:
     self.CLASH_PERCENT_INDEX = 0.025 #arbitrary
-    self.LECTURER_PREF_INDEX = 0.1 #arbitrary
 
 """
 
@@ -37,7 +36,7 @@ class Transfer():
         self.placementUrgency = None # eager or lazy placement
         self.MAXIMUM_REQUEUE_ATTEMPTS = None
         self.CLASH_PERCENT_INDEX = 0.25 #arbitrary
-        self.LECTURER_PREF_INDEX = 0.1 #arbitrary
+        self.LECTURER_PREF_INDEX = None
         self.allSessions = None
         self.AllsessionRegistration = None
         self.placeDict = None
@@ -61,23 +60,27 @@ class Transfer():
     
 
     def setAttibutes(self):
-        self.lecturePrefGeneome = self.geneotype[:8]
-
-        self.clashGenome = self.geneotype[8:14] 
-        self.roomProximityGenome = self.geneotype[14:19]
+        self.lecturePrefGeneome = self.geneotype[:3]
+        self.setLectureFactor()
+        self.clashGenome = self.geneotype[3:11] 
+        self.roomProximityGenome = self.geneotype[11:16]
         #CAI,16 bit gene sequence interpreted as  sign(0)0.0000 0000 0000 00
-        self.CAIgenome = self.geneotype[19:35]
+        self.CAIgenome = self.geneotype[16:32]
         self.CAIconstraintDecimal = None
         self.setDecimalCAI()
-        self.placementPlan=self.geneotype[35:38]
-        # [37:43]
-        self.placementUrgency= self.geneotype[38:]
+        self.placementPlan=self.geneotype[32:35]
+        # [37:40]
+        self.placementUrgency= self.geneotype[35:]
         self.setMaxRequeueAttempts()
         self.ClashConstraintRange = self.setClashConstraintPercentage()
         
     def setClashConstraintPercentage(self):
         clashbits = self.clashgenome
         self.ClashConstraintPercentage = int(clashbits.lstrip('0'), 2)
+
+    def setLectureFactor(self):
+        lectbits = self.lecturePrefGeneome
+        self.LECTURER_PREF_INDEX = int(lectbits.lstrip('0'), 2)/10
 
 
 
@@ -102,6 +105,7 @@ class Transfer():
     def setMaxRequeueAttempts(self) ->None:
             totalReQattempts =  int(self.placementUrgency,2) * 5 
             self.MAXIMUM_REQUEUE_ATTEMPTS = totalReQattempts
+    
 
     def getMaxRequeueAttempts(self) -> int:
         return self.MAXIMUM_REQUEUE_ATTEMPTS
@@ -793,7 +797,21 @@ class Transfer():
                     
 
 def execute(self) ->None:
-    genome =''
+
+    """
+        self.lecturePrefGeneome = self.geneotype[:3]
+        self.setLectureFactor()
+        self.clashGenome = self.geneotype[3:11] 
+        self.roomProximityGenome = self.geneotype[11:16]
+        #CAI,16 bit gene sequence interpreted as  sign(0)0.0000 0000 0000 00
+        self.CAIgenome = self.geneotype[16:32]
+        self.CAIconstraintDecimal = None
+        self.setDecimalCAI()
+        self.placementPlan=self.geneotype[32:35]
+        # [37:40]
+        self.placementUrgency= self.geneotype[35:]
+    """
+    genome ='010 00010100 00000 0100000000000000 010 00000'
     t = Transfer(genome)
     t.setAttibutes()
     t.generateTimetable()
