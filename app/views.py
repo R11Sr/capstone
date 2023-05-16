@@ -7,6 +7,10 @@ from flask import make_response
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
+import pdfkit
+import os
+import tempfile
+import requests
 
 ###
 # Routing for UWI Time and Place application.
@@ -37,6 +41,14 @@ def form():
     return render_template('upload.html', form=form)
 
 
+output_folder = 'timetables'  # Specify the output folder as "timetables"
+
+# # Create the output folder if it doesn't exist
+# os.makedirs(output_folder, exist_ok=True)
+
+# Global counter for keeping track of downloaded files
+download_counter = 0
+
 days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 time_slots = [
     "8:00", "9:00", "10:00", "11:00",
@@ -46,6 +58,8 @@ time_slots = [
 
 @app.route('/download')
 def download_timetable():
+
+
     
     # timeTable = [
     #     ["1"], ["2"], ["3"], ["4"], ["5"],
@@ -104,56 +118,145 @@ def download_timetable():
             index = i + j * len(days_of_week)
             if index < len(timeTable):
                 timetable[day][time_slot] = timeTable[index][0]
+                
+        
 
-     # Create a new PDF document
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
+    return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
 
-    # Set the font and font size
-    p.setFont("Helvetica", 12)
+    #  # Create a new PDF document
+    # buffer = BytesIO()
+    # p = canvas.Canvas(buffer, pagesize=letter)
 
-    # Calculate the initial position for writing the text
-    x = 50
-    y = 750
+    # # Set the font and font size
+    # p.setFont("Helvetica", 12)
 
-    # Set the vertical spacing between timetable entries
-    spacing = 20
+    # # Calculate the initial position for writing the text
+    # x = 50
+    # y = 750
 
-    # Iterate over the timetable data and write it to the PDF
-    for i, day in enumerate(days_of_week):
-        for j, time_slot in enumerate(time_slots):
-            timetable_entry = timetable[day][time_slot]
-            if timetable_entry:
-                p.drawString(x, y - (i * spacing), timetable_entry)
-    # Save the PDF document
-    p.save()
+    # # Set the vertical spacing between timetable entries
+    # spacing = 20
 
-    # Move the buffer's cursor position to the beginning
-    buffer.seek(0)
+    # # Iterate over the timetable data and write it to the PDF
+    # for i, day in enumerate(days_of_week):
+    #     for j, time_slot in enumerate(time_slots):
+    #         timetable_entry = timetable[day][time_slot]
+    #         if timetable_entry:
+    #             p.drawString(x, y - (i * spacing), timetable_entry)
+    # # Save the PDF document
+    # p.save()
 
-    # Create a Flask response with the PDF data and appropriate headers
-    response = make_response(buffer.getvalue())
-    response.headers['Content-Disposition'] = 'attachment; filename=timetable.pdf'
-    response.headers['Content-Type'] = 'application/pdf'
+    # # Move the buffer's cursor position to the beginning
+    # buffer.seek(0)
 
-    return response
+    # # Create a Flask response with the PDF data and appropriate headers
+    # response = make_response(buffer.getvalue())
+    # response.headers['Content-Disposition'] = 'attachment; filename=timetable.pdf'
+    # response.headers['Content-Type'] = 'application/pdf'
+
+    # return response
 
 
 
-@app.route('/download_pdf')
+# @app.route('/download_pdf')
+# def download_pdf():
+#     timetable = download_timetable()  # Replace with your function that generates the timetable
+#     html = render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
+
+#     # Generate PDF from HTML
+#     pdf = pdfkit.from_string(html, False)
+
+#     # Create a Flask response with the PDF as the content
+#     response = make_response(pdf)
+#     response.headers['Content-Type'] = 'application/pdf'
+#     response.headers['Content-Disposition'] = 'attachment; filename=timetable.pdf'
+#     return response
+
+
+@app.route('/download/pdf')
 def download_pdf():
-    timetable = download_timetable()  # Replace with your function that generates the timetable
-    html = render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
+    # rendered_html = download_timetable()  # Replace with your function that generates the timetable
+    # css_file_path = os.path.join(app.root_path, 'static/css/app.css')
+    # pa = 'C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe'
+    # pdfkit.from_string(rendered_html, 'timetable.pdf', css=css_file_path, configuration=pdfkit.configuration(wkhtmltopdf=pa))
+    
+    # # pdfkit.from_string(rendered_html, 'timetable.pdf', css='static/css/app.css')  
+    # # pdfkit.from_string(rendered_html, 'timetable.pdf')
+    # return send_file('timetable.pdf', as_attachment=True)
+    
+    
+    
+    
+    # timetable_url = 'http://127.0.0.1:8080/download/pdf'  # Replace with the URL of your timetable template
+    # css_file_path = os.path.join(app.root_path, 'static/css/app.css')
 
-    # Generate PDF from HTML
-    pdf = pdfkit.from_string(html, False)
+    # # Fetch the HTML content of the timetable URL
+    # response = requests.get(timetable_url)
+    # rendered_html = response.text
 
-    # Create a Flask response with the PDF as the content
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'attachment; filename=timetable.pdf'
-    return response
+    # # Save the rendered HTML to a temporary file
+    # with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as temp_file:
+    #     temp_file.write(rendered_html.encode('utf-8'))
+    #     temp_file.flush()
+    #     temp_html_path = temp_file.name
 
+    #     # Generate the PDF using the URL
+    #     output_file_path = os.path.join(output_folder, 'timetable.pdf')
+    #     pdfkit.from_file(temp_html_path, output_file_path, css=css_file_path)
+
+    # # Remove the temporary HTML file
+    # os.remove(temp_html_path)
+
+    # return send_file('timetable.pdf', as_attachment=True)
+    
+    timetable_url = 'http://127.0.0.1:8080/download'  # Replace with the URL of your timetable template
+    css_file_path = os.path.join(app.root_path, 'static/css/app.css')
+
+    # Fetch the HTML content of the timetable URL
+    response = requests.get(timetable_url)
+    rendered_html = response.text
+
+    # Save the rendered HTML to a temporary file
+    with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as temp_file:
+        temp_file.write(rendered_html.encode('utf-8'))
+        temp_file.flush()
+        temp_html_path = temp_file.name
+
+        # Generate the PDF using the URL
+        pdfkit.from_file(temp_html_path, 'timetable.pdf', css=css_file_path)
+
+    # Remove the temporary HTML file
+    os.remove(temp_html_path)
+
+    return send_file('timetable.pdf', as_attachment=True)
+    
+    # timetable_url = 'http://127.0.0.1:8080/download'  # Replace with the URL of your timetable template
+    # css_file_path = os.path.join(app.root_path, 'static/css/app.css')
+
+    # # Fetch the HTML content of the timetable URL
+    # response = requests.get(timetable_url)
+    # rendered_html = response.text
+    
+    # # print(rendered_html)
+
+    # # Generate the PDF using the URL
+    # output_file_path = generate_output_file_path()
+    # pdfkit.from_string(rendered_html, output_file_path, css=css_file_path)
+    
+
+    # return send_file(output_file_path, as_attachment=True)
+    
+
+
+def generate_output_file_path():
+        global download_counter
+        download_counter += 1
+        file_name = f"timetable{download_counter}.pdf"
+        folder_path = os.path.join(app.root_path, output_folder)  # Change "downloads" to the desired folder name
+        os.makedirs(folder_path, exist_ok=True)
+        return os.path.join(folder_path, file_name)
+    
+    
 
 # Your existing route for rendering the timetable HTML
 @app.route('/timetable')
