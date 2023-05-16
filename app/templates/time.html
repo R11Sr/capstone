@@ -20,13 +20,21 @@
         <div class="card-body">
                 
         <h3>Timetable {{ key }}</h3>
-        <div class="ttable-container">
-            <table class="table">
-                <thead>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    {% for day in days_of_week %}
+                        <th>{{ day }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for time_slot in time_slots %}
                     <tr>
-                        <th>Time</th>
+                        <td>{{ time_slot }}</td>
                         {% for day in days_of_week %}
-                            <th>{{ day }}</th>
+                            <td>{{ timetable[day][time_slot] }}</td>
                         {% endfor %}
                     </tr>
                 {% endfor %}
@@ -42,7 +50,7 @@
         
 </div>
 
-<a href="{{ url_for('download_pdf') }}" class="btn btn-primary">Download PDF</a>
+<a href="{{ url_for('download_timetable') }}" class="btn btn-primary">Download PDF</a>
 
 {% endblock %}
 
