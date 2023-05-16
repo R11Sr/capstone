@@ -1,6 +1,6 @@
 from app import app
 from flask import render_template, flash, request, send_file, redirect, url_for
-from app.forms import CourseForm
+from app.forms import CourseForm, ParameterForm
 from flask import Flask, render_template, make_response, Response
 from flask import make_response
 from reportlab.lib.pagesizes import letter
@@ -114,6 +114,50 @@ def form():
     clear_form(form)
 
     return render_template('upload.html', form=form)
+
+
+@app.route('/parameters', methods=['GET', 'POST'])
+def paramsform():
+    pform = ParameterForm()
+
+    if pform.validate_on_submit():
+        population_size = int(pform.population_size.data[0])
+        p_crossover =  0.9
+        p_mutation = 0.1
+        max_generations = int(pform.max_generations.data[0])
+        optimal_fitness_score = int(pform.optimal_fitness_score.data[0])  
+        max_runtime = int(pform.max_runtime.data[0])
+
+        flash('Parameters Set Successfully!', 'success')
+
+        """ flash(f'population_size : {population_size}')
+        flash(f'p_crossover: {p_crossover}')
+        flash(f'p_mutation: {p_mutation}')
+        flash(f'max_generations: {max_generations}')
+        flash(f'optimal_fitness_score: {optimal_fitness_score}')
+        flash(f'max_runtime: {max_runtime}') """
+    
+    flash_errors(pform)
+
+    file_exists11 = os.path.exists('form_parameters.csv')
+    try:
+        with open('form_parameters.csv', 'a', newline='') as csvfile11:
+            writer11 = csv.writer(csvfile11)
+            if file_exists11:
+                writer11.writerow([population_size, p_crossover, p_mutation, max_generations, optimal_fitness_score, max_runtime])
+            else:
+                writer11.writerow([population_size, p_crossover, p_mutation, max_generations, optimal_fitness_score, max_runtime])
+                
+    except Exception as e:
+        # flash('An error occurred while writing to the CSV file. Please try again.', 'error')
+        error_message = f"An error occurred while writing to the CSV file: {str(e)}"
+        flash(error_message, 'error')
+    
+    
+    clear_form(pform)
+    
+
+    return render_template('setParameters.html', form=pform)
 
 
 
