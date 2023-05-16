@@ -11,30 +11,33 @@
     <h2>Timetable</h2>
     {% for key, timetable in timetables.items() %}
         <h3>Timetable {{ key }}</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Time</th>
-                    {% for day in days_of_week %}
-                        <th>{{ day }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for time_slot in time_slots %}
+        <div class="ttable-container">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{ time_slot }}</td>
+                        <th>Time</th>
                         {% for day in days_of_week %}
-                            <td>{{ timetable[day][time_slot] }}</td>
+                            <th>{{ day }}</th>
                         {% endfor %}
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for time_slot in time_slots %}
+                        <tr>
+                            <td>{{ time_slot }}</td>
+                            {% for day in days_of_week %}
+                                <td>{{ timetable[day][time_slot] }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
     {% endfor %}
 </div>
 
-<a href="{{ url_for('download_timetable') }}" class="btn btn-primary">Download PDF</a>
+<a href="{{ url_for('download_pdf') }}" class="btn btn-primary">Download PDF</a>
 
 {% endblock %}
 

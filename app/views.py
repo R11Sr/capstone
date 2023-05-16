@@ -12,6 +12,7 @@ import tempfile
 import requests
 import random
 import csv
+from collections import OrderedDict
 
 ###
 # Routing for UWI Time and Place application.
@@ -280,20 +281,19 @@ def download_timetable():
     #         if index < len(timeTable):
     #             timetable[day][time_slot] = timeTable[index][0]
                 
+    
     timetables_dict = {}
     for key, timetable in timeTables.items():
         timetable_dict = {}
         for i, day in enumerate(days_of_week):
             timetable_dict[day] = {}
             for j, time_slot in enumerate(time_slots):
-                index = i * len(time_slots) + j
+                index = j * len(days_of_week) + i
                 if index < len(timetable):
                     timetable_dict[day][time_slot] = timetable[index][0]
         timetables_dict[key] = timetable_dict
-                
-        
 
-    # return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
+    # # return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
     return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
 
 
@@ -308,6 +308,7 @@ def download_pdf():
         # Fetch the HTML content of the timetable URL
         response = requests.get(timetable_url)
         rendered_html = response.text
+        print(rendered_html)
 
         # Generate the PDF using the URL
         output_file_path = generate_output_file_path()
@@ -318,7 +319,7 @@ def download_pdf():
     
     except OSError:
         flash('Timetable has been downloaded! Please check your Timetable Folder', 'success')
-        flash('An error occurred while generating the PDF.', 'danger')
+        # flash('An error occurred while generating the PDF.', 'danger')
         # Redirect the user back to the download page
         return redirect(url_for('download_timetable'))
 
