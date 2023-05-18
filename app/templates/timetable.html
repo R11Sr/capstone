@@ -7,15 +7,20 @@
 <div class="container">
 
     {% include 'flash_messages.html' %}
+    <div class="card-header">
+        <h2 class="card-title"><i class="bi bi-calendar-week"></i> Timetables</h2>
+    </div>
+    <div class="form_container p-5 rounded-top" style="background-color: #CBC3E3;"> 
 
+        <div class="card shadow p-3 mb-5 bg-white rounded">
 
-    <h2>Timetable</h2>
-    <table class="table">
+            <div class="card-body">
+            <table class="table">
         <thead>
             <tr>
-                <th>Time</th>
+                <th  style="background-color:  #CBC3E3;">Time</th>
                 {% for day in days_of_week %}
-                    <th>{{ day }}</th>
+                <th  style="background-color:  #CBC3E3;">{{ day }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -30,6 +35,10 @@
             {% endfor %}
         </tbody>
     </table>
+            
+    </div>
+    </div>
+    
 </div>
 
 
