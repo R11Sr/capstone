@@ -1,7 +1,8 @@
 from app import app
 from flask import render_template, flash, request, send_file, redirect, url_for
-from app.forms import CourseForm, ParameterForm
+from app.forms import CourseForm, ParameterForm, CSVUploads
 from flask import Flask, render_template, make_response, Response
+from werkzeug.utils import secure_filename
 from flask import make_response
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -12,6 +13,7 @@ import tempfile
 import requests
 import random
 import csv
+import json
 from collections import OrderedDict
 
 ###
@@ -122,12 +124,12 @@ def paramsform():
     pform = ParameterForm()
 
     if pform.validate_on_submit():
-        population_size = int(pform.population_size.data[0])
+        population_size = int(pform.population_size.data)
         p_crossover =  0.9
         p_mutation = 0.1
-        max_generations = int(pform.max_generations.data[0])
-        optimal_fitness_score = int(pform.optimal_fitness_score.data[0])  
-        max_runtime = int(pform.max_runtime.data[0])
+        max_generations = int(pform.max_generations.data)
+        optimal_fitness_score = int(pform.optimal_fitness_score.data)  
+        max_runtime = int(pform.max_runtime.data)
 
         flash('Parameters Set Successfully!', 'success')
 
@@ -136,7 +138,7 @@ def paramsform():
         flash(f'p_mutation: {p_mutation}')
         flash(f'max_generations: {max_generations}')
         flash(f'optimal_fitness_score: {optimal_fitness_score}')
-        flash(f'max_runtime: {max_runtime}') """
+        flash(f'max_runtime: {max_runtime}')  """
     
     flash_errors(pform)
 
@@ -160,6 +162,45 @@ def paramsform():
 
     return render_template('setParameters.html', form=pform)
 
+@app.route('/fileuploads', methods=['GET', 'POST'])
+def csvfileuploads():
+    csvform = CSVUploads()
+    
+    if csvform.validate_on_submit():
+        student_reg_file = csvform.student_reg_file.data
+
+        student_reg_filename=secure_filename(student_reg_file.filename)
+        student_reg_file.save(generate_output_csvfile_path(student_reg_filename,'Student_Registration_files'))
+
+        lect_pref_file = csvform.lect_pref_file.data
+
+        lect_pref_filename=secure_filename(lect_pref_file.filename)
+        lect_pref_file.save(generate_output_csvfile_path(lect_pref_filename,'Lecturer_Preferences_files'))
+        
+
+        flash('Files Uploaded Successfully!', 'success')
+
+        """ flash(f'population_size : {population_size}')
+        flash(f'p_crossover: {p_crossover}')
+        flash(f'p_mutation: {p_mutation}')
+        flash(f'max_generations: {max_generations}')
+        flash(f'optimal_fitness_score: {optimal_fitness_score}')
+        flash(f'max_runtime: {max_runtime}')  """
+    
+    flash_errors(csvform) 
+    
+    clear_form(csvform)
+    
+
+    return render_template('uploadcsvfiles.html', form=csvform)
+
+#output_csvfolder = 'StudentRegistrationfiles'  # Specify the output folder as "timetables"
+   
+def generate_output_csvfile_path(file_name,output_csvfolder):
+        
+        foldercsv_path = os.path.join(app.root_path, output_csvfolder)  
+        os.makedirs(foldercsv_path, exist_ok=True)
+        return os.path.join(foldercsv_path, file_name)
 
 
 days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -168,6 +209,11 @@ time_slots = [
     "12:00", "13:00", "14:00", "15:00",
     "16:00", "17:00", "18:00", "19:00", "20:00"
 ]
+
+def read_file(file_path):
+    with open(file_path, 'r') as file:
+        file_contents = file.read()
+    return file_contents
 
 @app.route('/download')
 def download_timetable():
@@ -188,8 +234,19 @@ def download_timetable():
     #     ["56"], ["57"], ["58"], ["59"], ["60"],
     #     ["61"], ["62"], ["63"], ["64"], ["65"]
     # ]
-    
-    timeTables = {
+
+
+    try:
+        filepath = os.path.join(os.getcwd(), 'mock_tables.txt')
+        with open(filepath, 'r') as file:
+            data = file.read()
+    except IOError:
+        print("An error occurred while reading the file.")
+    else:
+        timeTables = json.loads(data)
+        
+
+    """ timeTables = {
         '0' : [
         ["1"], ["2"], ["3"], ["4"], ["5"],
         ["6"], ["7"], ["8"], ["9"], ["10"],
@@ -235,7 +292,7 @@ def download_timetable():
         ["56"], ["57"], ["58"], ["59"], ["60"],
         ["61"], ["62"], ["63"], ["64"], ["65"]]  
         
-    } 
+    }  """
         
 
     
@@ -260,7 +317,10 @@ def download_timetable():
             for j, time_slot in enumerate(time_slots):
                 index = j * len(days_of_week) + i
                 if index < len(timetable):
-                    timetable_dict[day][time_slot] = timetable[index][0]
+                    if timetable[index] == []:
+                        timetable_dict[day][time_slot] = ' '
+                    else:    
+                        timetable_dict[day][time_slot] = timetable[index]
         timetables_dict[key] = timetable_dict
 
     # # return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
