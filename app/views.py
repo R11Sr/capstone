@@ -35,11 +35,12 @@ def form():
         time_preferences = form.time_preferences.data  
         full_name = first_name + last_name 
 
-        # flash(f'Course Title: {course_title}')
+        # flash(f'Course Title: {course_title}')_
         # flash(f'Course Code: {course_code}')
         # flash(f'First Name: {first_name}')
         # flash(f'Last Name: {last_name}')
         # flash(f'Time Preferences: {", ".join(time_preferences)}')
+        # flash(f'FullName: { full_name}')
         
         
         flash('New Course Information Successfully Added!', 'success')
@@ -67,7 +68,7 @@ def form():
     except Exception as e:
         # flash('An error occurred while writing to the CSV file. Please try again.', 'error')
         error_message = f"An error occurred while writing to the CSV file: {str(e)}"
-        # flash(error_message, 'error')
+        flash(error_message, 'error')
     
     # file_exists2 = os.path.exists('form_registration.csv')
     # values = generate_values(first)
@@ -103,15 +104,13 @@ def form():
         with open('lecturer_pref.csv', 'a', newline='') as csvfile:
             writer3 = csv.writer(csvfile)
             if file_exists3:
-                writer3.writerow([[full_name], time_preferences])
+               writer3.writerow([f'{full_name} : {time_preferences}'])
             else:
-                
-                writer3.writerow([[full_name], time_preferences])
+                writer3.writerow([f'{full_name} : {time_preferences}'])
                 
     except Exception as e:
-        # flash('An error occurred while writing to the CSV file. Please try again.', 'error')
         error_message = f"An error occurred while writing to the CSV file: {str(e)}"
-        # flash(error_message, 'error')
+        flash(error_message, 'error')
     
     clear_form(form)
 
