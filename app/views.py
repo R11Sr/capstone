@@ -8,12 +8,10 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 import pdfkit
 import os
-import tempfile
 import requests
 import random
 import csv
-from collections import OrderedDict
-import ast
+import json
 
 ###
 # Routing for UWI Time and Place application.
@@ -179,184 +177,15 @@ def read_file(file_path):
 @app.route('/download')
 def download_timetable():
     
-    
-                
-    # timeTable = [ 
-    
-    #     ["1"], ["2"], ["3"], ["4"], ["5"],
-    #     ["6"], ["7"], ["8"], ["9"], ["10"],
-    #     ["11"], ["12"], ["13"], ["14"], ["15"],
-    #     ["16"], ["17"], ["18"], ["19"], ["20"],
-    #     ["21"], ["22"], ["23"], ["24"], ["25"],
-    #     ["26"], ["27"], ["28"], ["29"], ["30"],
-    #     ["31"], ["32"], ["33"], ["34"], ["35"],
-    #     ["36"], ["37"], ["38"], ["39"], ["40"],
-    #     ["41"], ["42"], ["43"], ["44"], ["45"],
-    #     ["46"], ["47"], ["48"], ["49"], ["50"],
-    #     ["51"], ["52"], ["53"], ["54"], ["55"],
-    #     ["56"], ["57"], ["58"], ["59"], ["60"],
-    #     ["61"], ["62"], ["63"], ["64"], ["65"]
-    # ]
-    
-    # timeTables = {
-    #     '0' : [
-    #     ["1"], ["2"], ["3"], ["4"], ["5"],
-    #     ["6"], ["7"], ["8"], ["9"], ["10"],
-    #     ["11"], ["12"], ["13"], ["14"], ["15"],
-    #     ["16"], ["17"], ["18"], ["19"], ["20"],
-    #     ["21"], ["22"], ["23"], ["24"], ["25"],
-    #     ["26"], ["27"], ["28"], ["29"], ["30"],
-    #     ["31"], ["32"], ["33"], ["34"], ["35"],
-    #     ["36"], ["37"], ["38"], ["39"], ["40"],
-    #     ["41"], ["42"], ["43"], ["44"], ["45"],
-    #     ["46"], ["47"], ["48"], ["49"], ["50"],
-    #     ["51"], ["52"], ["53"], ["54"], ["55"],
-    #     ["56"], ["57"], ["58"], ["59"], ["60"],
-    #     ["61"], ["62"], ["63"], ["64"], ["65"]] , 
-        
-    #     '1' : [
-    #     ["1"], ["2"], ["3"], ["4"], ["5"],
-    #     ["6"], ["7"], ["8"], ["9"], ["10"],
-    #     ["11"], ["12"], ["13"], ["14"], ["15"],
-    #     ["16"], ["17"], ["18"], ["19"], ["20"],
-    #     ["21"], ["22"], ["23"], ["24"], ["25"],
-    #     ["26"], ["27"], ["28"], ["29"], ["30"],
-    #     ["31"], ["32"], ["33"], ["34"], ["35"],
-    #     ["36"], ["37"], ["38"], ["39"], ["40"],
-    #     ["41"], ["42"], ["43"], ["44"], ["45"],
-    #     ["46"], ["47"], ["48"], ["49"], ["50"],
-    #     ["51"], ["52"], ["53"], ["54"], ["55"],
-    #     ["56"], ["57"], ["58"], ["59"], ["60"],
-    #     ["61"], ["62"], ["63"], ["64"], ["65"]] , 
-        
-    #     '2' : [
-    #     ["1"], ["2"], ["3"], ["4"], ["5"],
-    #     ["6"], ["7"], ["8"], ["9"], ["10"],
-    #     ["11"], ["12"], ["13"], ["14"], ["15"],
-    #     ["16"], ["17"], ["18"], ["19"], ["20"],
-    #     ["21"], ["22"], ["23"], ["24"], ["25"],
-    #     ["26"], ["27"], ["28"], ["29"], ["30"],
-    #     ["31"], ["32"], ["33"], ["34"], ["35"],
-    #     ["36"], ["37"], ["38"], ["39"], ["40"],
-    #     ["41"], ["42"], ["43"], ["44"], ["45"],
-    #     ["46"], ["47"], ["48"], ["49"], ["50"],
-    #     ["51"], ["52"], ["53"], ["54"], ["55"],
-    #     ["56"], ["57"], ["58"], ["59"], ["60"],
-    #     ["61"], ["62"], ["63"], ["64"], ["65"]]  
-        
-    # } 
-    
-    timeTables = {
-        "0": [
-        
-        ["name: BIOC3013-Lecture-2, capacity: 23, location: C5", "name: GEOL3002-Lecture-1, capacity: 9, location: C3", "name: MATH1141-Lecture-3, capacity: 26, location: C2", "name: CHEM2310-Lecture-1, capacity: 32, location: Math Room 2", "name: GEOG1131-Lecture-1, capacity: 44, location: Math Room 1", "name: CHEM1901-Lecture-2, capacity: 43, location: ENG Comp Lab", "name: GEOL2202-Lecture-1, capacity: 34, location: SLT3", "name: PHYS2351-Lecture-2, capacity: 34, location: SLT2", "name: MICR1011-Lecture-1, capacity: 25, location: SLT1", "name: MATH2404-Lecture-1, capacity: 33, location: Physics Lab", "name: CHEM2210-Lecture-2, capacity: 32, location: GEOG Lab 3", "name: BIOC2014-Lecture-3, capacity: 19, location: GEOG Lecture RM 2", "name: INFO2180-Lecture-3, capacity: 114, location: GEOG Lecture RM 1", "name: INFO2100-Lecture-1, capacity: 114, location: GEOG Lab 2", "name: INFO3155-Lecture-1, capacity: 262, location: CompLab", "name: INFO3110-Lecture-3, capacity: 262, location: CompCLR", "name: COMP3901-Lecture-1, capacity: 398, location: None", "name: COMP3161-Lecture-2, capacity: 398, location: None", "name: COMP2340-Lecture-2, capacity: 177, location: None", "name: COMP2211-Lecture-1, capacity: 122, location: None", "name: COMP2190-Lecture-2, capacity: 236, location: None", "name: COMP2171-Lecture-2, capacity: 122, location: None", "name: INFO2110-Lecture-2, capacity: 114, location: None", "name: INFO3180-Lecture-1, capacity: 262, location: None", "name: INFO3170-Lecture-1, capacity: 262, location: None", "name: INFO3105-Lecture-3, capacity: 262, location: None", "name: COMP1161-Lecture-2, capacity: 250, location: None", "name: COMP1127-Lecture-3, capacity: 250, location: None", "name: COMP1126-Lecture-3, capacity: 250, location: None", "name: COMP1220-Lecture-1, capacity: 250, location: None", "name: COMP1210-Lecture-2, capacity: 250, location: None", "name: COMP3220-Lecture-2, capacity: 136, location: None", "name: COMP3101-Lecture-1, capacity: 136, location: None", "name: COMP2201-Lecture-2, capacity: 122, location: None", "name: COMP2140-Lecture-2, capacity: 236, location: None", "name: SWEN3920-Lecture-1, capacity: 116, location: None", "name: SWEN3145-Lecture-1, capacity: 116, location: None", "name: SWEN3101-Lecture-3, capacity: 116, location: None"],
-        ["name: BIOC3013-Seminar-1, capacity: 23, location: C5", "name: MATH1141-Lecture-2, capacity: 26, location: C3", "name: GEOL3002-Seminar-1, capacity: 9, location: C2", "name: CHEM1901-Lecture-1, capacity: 43, location: Math Room 2", "name: PHYS2351-Lecture-1, capacity: 34, location: Math Room 1", "name: CHEM2210-Lecture-1, capacity: 32, location: ENG Comp Lab", "name: CHEM2310-Tutorial-2, capacity: 21, location: SLT3", "name: BIOC2014-Lecture-2, capacity: 19, location: SLT2", "name: INFO2180-Lecture-2, capacity: 114, location: SLT1", "name: GEOG1131-Seminar-2, capacity: 44, location: Physics Lab", "name: INFO3110-Lecture-2, capacity: 262, location: GEOG Lab 3", "name: COMP3161-Lecture-1, capacity: 398, location: GEOG Lecture RM 2", "name: GEOL2202-Tutorial-6, capacity: 7, location: GEOG Lecture RM 1", "name: COMP2340-Lecture-1, capacity: 177, location: GEOG Lab 2", "name: COMP2190-Lecture-1, capacity: 236, location: CompLab", "name: INFO2110-Lecture-1, capacity: 114, location: CompCLR", "name: INFO3105-Lecture-2, capacity: 262, location: None", "name: MICR1011-Seminar-1, capacity: 25, location: None", "name: COMP1161-Lecture-1, capacity: 250, location: None", "name: COMP1127-Lecture-2, capacity: 250, location: None", "name: MATH2404-Tutorial-5, capacity: 9, location: None", "name: COMP1126-Lecture-2, capacity: 250, location: None", "name: COMP1210-Lecture-1, capacity: 250, location: None", "name: COMP3220-Lecture-1, capacity: 136, location: None", "name: COMP2201-Lecture-1, capacity: 122, location: None", "name: SWEN3920-Lecture-2, capacity: 116, location: None", "name: SWEN3101-Lecture-2, capacity: 116, location: None", "name: SWEN3145-Tutorial-1, capacity: 30, location: None", "name: INFO2100-Tutorial-1, capacity: 148, location: None", "name: INFO3155-Tutorial-8, capacity: 43, location: None", "name: COMP2140-Tutorial-1, capacity: 153, location: None", "name: COMP3101-Tutorial-1, capacity: 59, location: None", "name: COMP3901-Tutorial-4, capacity: 103, location: None", "name: COMP1220-Tutorial-1, capacity: 54, location: None", "name: COMP2211-Seminar-2, capacity: 122, location: None", "name: COMP2171-Seminar-2, capacity: 122, location: None", "name: INFO3180-Seminar-1, capacity: 262, location: None", "name: INFO3170-Seminar-2, capacity: 262, location: None"], 
-        ["name: BIOC3013-Lecture-1, capacity: 23, location: C5", "name: MATH1141-Lecture-1, capacity: 26, location: C3", "name: GEOL3002-Tutorial-2, capacity: 6, location: C2", "name: CHEM2310-Tutorial-1, capacity: 21, location: Math Room 2", "name: BIOC2014-Lecture-1, capacity: 19, location: Math Room 1", "name: INFO2180-Lecture-1, capacity: 114, location: ENG Comp Lab", "name: GEOG1131-Seminar-1, capacity: 44, location: SLT3", "name: CHEM1901-Tutorial-5, capacity: 11, location: SLT2", "name: INFO3110-Lecture-1, capacity: 262, location: SLT1", "name: GEOL2202-Tutorial-5, capacity: 7, location: Physics Lab", "name: COMP2171-Lecture-1, capacity: 122, location: GEOG Lab 3", "name: PHYS2351-Tutorial-5, capacity: 9, location: GEOG Lecture RM 2", "name: INFO3105-Lecture-1, capacity: 262, location: GEOG Lecture RM 1", "name: MICR1011-Tutorial-4, capacity: 6, location: GEOG Lab 2", "name: COMP1127-Lecture-1, capacity: 250, location: CompLab", "name: MATH2404-Tutorial-4, capacity: 9, location: CompCLR", "name: COMP1126-Lecture-1, capacity: 250, location: None", "name: CHEM2210-Seminar-2, capacity: 32, location: None", "name: COMP2140-Lecture-1, capacity: 236, location: None", "name: SWEN3101-Lecture-1, capacity: 116, location: None", "name: SWEN3145-Tutorial-2, capacity: 30, location: None", "name: SWEN3920-Tutorial-1, capacity: 22, location: None", "name: INFO2100-Lab-2, capacity: 148, location: None", "name: INFO3155-Seminar-1, capacity: 262, location: None", "name: COMP2201-Lab-1, capacity: 79, location: None", "name: COMP3101-Tutorial-2, capacity: 59, location: None", "name: COMP3220-Lab-1, capacity: 25, location: None", "name: COMP3901-Tutorial-5, capacity: 103, location: None", "name: COMP3161-Seminar-1, capacity: 398, location: None", "name: COMP1210-Tutorial-1, capacity: 81, location: None", "name: COMP2340-Seminar-1, capacity: 177, location: None", "name: COMP1220-Tutorial-3, capacity: 54, location: None", "name: COMP2211-Seminar-1, capacity: 122, location: None", "name: COMP2190-Tutorial-1, capacity: 307, location: None", "name: COMP1161-Lab-1, capacity: 65, location: None", "name: INFO2110-Seminar-1, capacity: 114, location: None", "name: INFO3180-Tutorial-4, capacity: 85, location: None", "name: INFO3170-Seminar-1, capacity: 262, location: None"], 
-        ["name: BIOC3013-Tutorial-5, capacity: 6, location: C5", "name: GEOL3002-Tutorial-1, capacity: 6, location: C3", "name: MATH1141-Seminar-1, capacity: 26, location: C2", "name: CHEM2310-Lab-2, capacity: 21, location: Math Room 2", "name: GEOG1131-Tutorial-1, capacity: 57, location: Math Room 1", "name: CHEM1901-Tutorial-4, capacity: 11, location: ENG Comp Lab", "name: GEOL2202-Tutorial-4, capacity: 7, location: SLT3", "name: PHYS2351-Tutorial-4, capacity: 9, location: SLT2", "name: MICR1011-Tutorial-5, capacity: 6, location: SLT1", "name: MATH2404-Tutorial-3, capacity: 9, location: Physics Lab", "name: CHEM2210-Seminar-1, capacity: 32, location: GEOG Lab 3", "name: BIOC2014-Seminar-2, capacity: 19, location: GEOG Lecture RM 2", "name: SWEN3101-Lab-1, capacity: 30, location: GEOG Lecture RM 1", "name: INFO2180-Tutorial-8, capacity: 19, location: GEOG Lab 2", "name: SWEN3145-Tutorial-3, capacity: 30, location: CompLab", "name: SWEN3920-Tutorial-2, capacity: 22, location: CompCLR", "name: INFO2100-Lab-1, capacity: 148, location: None", "name: INFO3155-Tutorial-7, capacity: 43, location: None", "name: COMP2140-Tutorial-2, capacity: 153, location: None", "name: INFO3110-Seminar-1, capacity: 262, location: None", "name: COMP2201-Tutorial-1, capacity: 79, location: None", "name: COMP3101-Seminar-1, capacity: 136, location: None", "name: COMP3220-Lab-2, capacity: 25, location: None", "name: COMP3901-Tutorial-3, capacity: 103, location: None", "name: COMP3161-Tutorial-3, capacity: 172, location: None", "name: COMP1210-Tutorial-2, capacity: 81, location: None", "name: COMP2340-Tutorial-5, capacity: 46, location: None", "name: COMP1220-Tutorial-2, capacity: 54, location: None", "name: COMP2211-Tutorial-9, capacity: 18, location: None", "name: COMP1126-Tutorial-1, capacity: 46, location: None", "name: COMP2190-Lab-1, capacity: 307, location: None", "name: COMP1127-Tutorial-1, capacity: 46, location: None", "name: COMP2171-Seminar-1, capacity: 122, location: None", "name: COMP1161-Tutorial-1, capacity: 65, location: None", "name: INFO2110-Tutorial-4, capacity: 37, location: None", "name: INFO3105-Tutorial-1, capacity: 57, location: None", "name: INFO3180-Tutorial-3, capacity: 85, location: None", "name: INFO3170-Tutorial-1, capacity: 114, location: None"], 
-        ["name: BIOC3013-Tutorial-4, capacity: 6, location: C5", "name: MATH1141-Tutorial-7, capacity: 5, location: C3", "name: CHEM2310-Lab-1, capacity: 21, location: C2", "name: CHEM1901-Tutorial-3, capacity: 11, location: Math Room 2", "name: GEOL2202-Tutorial-3, capacity: 7, location: Math Room 1", "name: PHYS2351-Tutorial-3, capacity: 9, location: ENG Comp Lab", "name: MICR1011-Tutorial-3, capacity: 6, location: SLT3", "name: MATH2404-Tutorial-2, capacity: 9, location: SLT2", "name: CHEM2210-Tutorial-9, capacity: 5, location: SLT1", "name: BIOC2014-Seminar-1, capacity: 19, location: Physics Lab", "name: SWEN3101-Tutorial-1, capacity: 30, location: GEOG Lab 3", "name: INFO2180-Tutorial-7, capacity: 19, location: GEOG Lecture RM 2", "name: SWEN3145-Tutorial-4, capacity: 30, location: GEOG Lecture RM 1", "name: SWEN3920-Tutorial-3, capacity: 22, location: GEOG Lab 2", "name: INFO3155-Tutorial-6, capacity: 43, location: CompLab", "name: COMP2140-Seminar-2, capacity: 236, location: CompCLR", "name: INFO3110-Tutorial-7, capacity: 49, location: None", "name: COMP2201-Tutorial-2, capacity: 79, location: None", "name: COMP3101-Tutorial-3, capacity: 59, location: None", "name: COMP3220-Tutorial-1, capacity: 25, location: None", "name: COMP3901-Tutorial-2, capacity: 103, location: None", "name: COMP3161-Tutorial-2, capacity: 172, location: None", "name: COMP1210-Tutorial-3, capacity: 81, location: None", "name: COMP2340-Tutorial-4, capacity: 46, location: None", "name: COMP1220-Tutorial-4, capacity: 54, location: None", "name: COMP2211-Tutorial-8, capacity: 18, location: None", "name: COMP1126-Tutorial-2, capacity: 46, location: None", "name: COMP1127-Tutorial-2, capacity: 46, location: None", "name: COMP2171-Tutorial-7, capacity: 23, location: None", "name: COMP1161-Tutorial-2, capacity: 65, location: None", "name: INFO2110-Tutorial-3, capacity: 37, location: None", "name: INFO3105-Tutorial-2, capacity: 57, location: None", "name: INFO3180-Tutorial-2, capacity: 85, location: None", "name: INFO3170-Tutorial-3, capacity: 114, location: None"], 
-        ["name: BIOC3013-Tutorial-3, capacity: 6, location: C5", "name: MATH1141-Tutorial-6, capacity: 5, location: C3", "name: CHEM1901-Tutorial-2, capacity: 11, location: C2", "name: GEOL2202-Tutorial-2, capacity: 7, location: Math Room 2", "name: PHYS2351-Tutorial-2, capacity: 9, location: Math Room 1", "name: MICR1011-Tutorial-2, capacity: 6, location: ENG Comp Lab", "name: MATH2404-Tutorial-1, capacity: 9, location: SLT3", "name: CHEM2210-Tutorial-8, capacity: 5, location: SLT2", "name: BIOC2014-Tutorial-4, capacity: 6, location: SLT1", "name: SWEN3101-Tutorial-2, capacity: 30, location: Physics Lab", "name: INFO2180-Tutorial-6, capacity: 19, location: GEOG Lab 3", "name: SWEN3145-Tutorial-5, capacity: 30, location: GEOG Lecture RM 2", "name: SWEN3920-Tutorial-4, capacity: 22, location: GEOG Lecture RM 1", "name: INFO3155-Tutorial-5, capacity: 43, location: GEOG Lab 2", "name: COMP2140-Seminar-1, capacity: 236, location: CompLab", "name: INFO3110-Tutorial-6, capacity: 49, location: CompCLR", "name: COMP3220-Tutorial-2, capacity: 25, location: None", "name: COMP3901-Tutorial-1, capacity: 103, location: None", "name: COMP3161-Tutorial-1, capacity: 172, location: None", "name: COMP1210-Tutorial-4, capacity: 81, location: None", "name: COMP2340-Tutorial-3, capacity: 46, location: None", "name: COMP1220-Tutorial-5, capacity: 54, location: None", "name: COMP2211-Tutorial-7, capacity: 18, location: None", "name: COMP1126-Tutorial-3, capacity: 46, location: None", "name: COMP1127-Tutorial-3, capacity: 46, location: None", "name: COMP2171-Tutorial-6, capacity: 23, location: None", "name: COMP1161-Tutorial-3, capacity: 65, location: None", "name: INFO2110-Tutorial-2, capacity: 37, location: None", "name: INFO3105-Tutorial-3, capacity: 57, location: None", "name: INFO3180-Tutorial-1, capacity: 85, location: None", "name: INFO3170-Tutorial-2, capacity: 114, location: None"],
-        ["name: BIOC3013-Tutorial-2, capacity: 6, location: C5", "name: MATH1141-Tutorial-5, capacity: 5, location: C3", "name: CHEM1901-Tutorial-1, capacity: 11, location: C2", "name: GEOL2202-Tutorial-1, capacity: 7, location: Math Room 2", "name: PHYS2351-Tutorial-1, capacity: 9, location: Math Room 1", "name: MICR1011-Tutorial-1, capacity: 6, location: ENG Comp Lab", "name: MATH2404-Lab-2, capacity: 9, location: SLT3", "name: CHEM2210-Tutorial-7, capacity: 5, location: SLT2", "name: BIOC2014-Tutorial-3, capacity: 6, location: SLT1", "name: SWEN3101-Tutorial-3, capacity: 30, location: Physics Lab", "name: INFO2180-Tutorial-5, capacity: 19, location: GEOG Lab 3", "name: SWEN3145-Seminar-1, capacity: 116, location: GEOG Lecture RM 2", "name: SWEN3920-Tutorial-5, capacity: 22, location: GEOG Lecture RM 1", "name: INFO3155-Tutorial-4, capacity: 43, location: GEOG Lab 2", "name: INFO3110-Tutorial-5, capacity: 49, location: CompLab", "name: COMP3220-Tutorial-3, capacity: 25, location: CompCLR", "name: COMP3901-Lab-1, capacity: 103, location: None", "name: COMP1210-Seminar-1, capacity: 250, location: None", "name: COMP2340-Tutorial-2, capacity: 46, location: None", "name: COMP1220-Tutorial-6, capacity: 54, location: None", "name: COMP2211-Tutorial-6, capacity: 18, location: None", "name: COMP1126-Tutorial-4, capacity: 46, location: None", "name: COMP1127-Tutorial-4, capacity: 46, location: None", "name: COMP2171-Tutorial-5, capacity: 23, location: None", "name: COMP1161-Tutorial-4, capacity: 65, location: None", "name: INFO2110-Tutorial-1, capacity: 37, location: None", "name: INFO3105-Tutorial-4, capacity: 57, location: None"], 
-        ["name: BIOC3013-Tutorial-1, capacity: 6, location: C5", "name: MATH1141-Tutorial-4, capacity: 5, location: C3", "name: CHEM1901-Lab-2, capacity: 11, location: C2", "name: GEOL2202-Lab-1, capacity: 7, location: Math Room 2", "name: PHYS2351-Lab-1, capacity: 9, location: Math Room 1", "name: MATH2404-Lab-1, capacity: 9, location: ENG Comp Lab", "name: CHEM2210-Tutorial-6, capacity: 5, location: SLT3", "name: BIOC2014-Tutorial-2, capacity: 6, location: SLT2", "name: SWEN3101-Tutorial-4, capacity: 30, location: SLT1", "name: INFO2180-Tutorial-4, capacity: 19, location: Physics Lab", "name: SWEN3145-Seminar-2, capacity: 116, location: GEOG Lab 3", "name: SWEN3920-Tutorial-6, capacity: 22, location: GEOG Lecture RM 2", "name: INFO3155-Tutorial-3, capacity: 43, location: GEOG Lecture RM 1", "name: INFO3110-Tutorial-4, capacity: 49, location: GEOG Lab 2", "name: COMP3220-Tutorial-4, capacity: 25, location: CompLab", "name: COMP1210-Seminar-2, capacity: 250, location: CompCLR", "name: COMP2340-Tutorial-1, capacity: 46, location: None", "name: COMP1220-Seminar-1, capacity: 250, location: None", "name: COMP2211-Tutorial-5, capacity: 18, location: None", "name: COMP1126-Tutorial-5, capacity: 46, location: None", "name: COMP1127-Tutorial-5, capacity: 46, location: None", "name: COMP2171-Tutorial-4, capacity: 23, location: None", "name: COMP1161-Tutorial-5, capacity: 65, location: None", "name: INFO3105-Tutorial-5, capacity: 57, location: None"],
-        ["name: MATH1141-Tutorial-3, capacity: 5, location: C5", "name: CHEM1901-Lab-1, capacity: 11, location: C3", "name: CHEM2210-Tutorial-5, capacity: 5, location: C2", "name: BIOC2014-Tutorial-1, capacity: 6, location: Math Room 2", "name: SWEN3101-Tutorial-5, capacity: 30, location: Math Room 1", "name: INFO2180-Tutorial-3, capacity: 19, location: ENG Comp Lab", "name: SWEN3920-Tutorial-7, capacity: 22, location: SLT3", "name: INFO3155-Tutorial-2, capacity: 43, location: SLT2", "name: INFO3110-Tutorial-3, capacity: 49, location: SLT1", "name: COMP3220-Tutorial-5, capacity: 25, location: Physics Lab", "name: COMP2211-Tutorial-4, capacity: 18, location: GEOG Lab 3", "name: COMP1126-Tutorial-6, capacity: 46, location: GEOG Lecture RM 2", "name: COMP1127-Tutorial-6, capacity: 46, location: GEOG Lecture RM 1", "name: COMP2171-Tutorial-3, capacity: 23, location: GEOG Lab 2", "name: INFO3105-Tutorial-6, capacity: 57, location: CompLab"], 
-        ["name: MATH1141-Tutorial-2, capacity: 5, location: C5", "name: CHEM2210-Tutorial-4, capacity: 5, location: C3", "name: INFO2180-Tutorial-2, capacity: 19, location: C2", "name: SWEN3920-Seminar-1, capacity: 116, location: Math Room 2", "name: INFO3155-Tutorial-1, capacity: 43, location: Math Room 1", "name: INFO3110-Tutorial-2, capacity: 49, location: ENG Comp Lab", "name: COMP3220-Tutorial-6, capacity: 25, location: SLT3", "name: COMP2211-Tutorial-3, capacity: 18, location: SLT2", "name: COMP1126-Tutorial-7, capacity: 46, location: SLT1", "name: COMP1127-Tutorial-7, capacity: 46, location: Physics Lab", "name: COMP2171-Tutorial-2, capacity: 23, location: GEOG Lab 3", "name: INFO3105-Seminar-1, capacity: 262, location: GEOG Lecture RM 2"], 
-        ["name: MATH1141-Tutorial-1, capacity: 5, location: C5", "name: CHEM2210-Tutorial-3, capacity: 5, location: C3", "name: INFO2180-Tutorial-1, capacity: 19, location: C2", "name: SWEN3920-Seminar-2, capacity: 116, location: Math Room 2", "name: INFO3110-Tutorial-1, capacity: 49, location: Math Room 1", "name: COMP3220-Tutorial-7, capacity: 25, location: ENG Comp Lab", "name: COMP2211-Tutorial-2, capacity: 18, location: SLT3", "name: COMP1126-Seminar-1, capacity: 250, location: SLT2", "name: COMP1127-Seminar-1, capacity: 250, location: SLT1", "name: COMP2171-Tutorial-1, capacity: 23, location: Physics Lab"], 
-        ["name: CHEM2210-Tutorial-2, capacity: 5, location: C5", "name: INFO2180-Lab-1, capacity: 19, location: C3", "name: COMP2211-Tutorial-1, capacity: 18, location: C2"], 
-        ["name: CHEM2210-Tutorial-1, capacity: 5, location: C5"], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []],
-                
-        "1": [
-            ["name: SWEN3101-Tutorial-1, capacity: 30, location: C5", "name: BIOC2014-Tutorial-2, capacity: 6, location: C3", "name: INFO3155-Tutorial-5, capacity: 43, location: C3", "name: COMP2340-Tutorial-4, capacity: 46, location: C3", "name: COMP2140-Seminar-1, capacity: 236, location: Math Room 1", "name: INFO3170-Seminar-1, capacity: 262, location: Math Room 1", "name: COMP1220-Lecture-1, capacity: 250, location: SLT2"],
-            ["name: SWEN3101-Tutorial-2, capacity: 30, location: C5", "name: BIOC2014-Tutorial-1, capacity: 6, location: C3", "name: INFO3155-Tutorial-2, capacity: 43, location: C3", "name: COMP2340-Tutorial-3, capacity: 46, location: C3", "name: COMP2140-Lecture-2, capacity: 236, location: SLT3", "name: INFO3105-Lecture-1, capacity: 262, location: SLT3"],
-            ["name: SWEN3101-Tutorial-3, capacity: 30, location: C5", "name: COMP2340-Tutorial-5, capacity: 46, location: C3", "name: GEOL3002-Tutorial-2, capacity: 6, location: C3", "name: COMP1220-Tutorial-4, capacity: 54, location: C2", "name: COMP2171-Lecture-1, capacity: 122, location: SLT1"], ["name: SWEN3145-Tutorial-5, capacity: 30, location: C5", "name: PHYS2351-Tutorial-2, capacity: 9, location: C3", "name: COMP1127-Tutorial-5, capacity: 46, location: C3", "name: COMP3901-Tutorial-4, capacity: 103, location: C3", "name: MATH1141-Tutorial-5, capacity: 5, location: C2", "name: CHEM2310-Tutorial-2, capacity: 21, location: C2"], 
-            ["name: COMP2140-Tutorial-1, capacity: 153, location: C5", "name: INFO3105-Tutorial-2, capacity: 57, location: C3", "name: COMP1220-Tutorial-6, capacity: 54, location: C2", "name: SWEN3101-Lab-1, capacity: 30, location: C2"], 
-            ["name: GEOL2202-Tutorial-3, capacity: 7, location: C3"], 
-            ["name: INFO2110-Tutorial-1, capacity: 37, location: C5", "name: INFO3105-Tutorial-1, capacity: 57, location: C3", "name: BIOC2014-Seminar-2, capacity: 19, location: Math Room 1", "name: INFO3105-Seminar-1, capacity: 262, location: Math Room 1", "name: COMP2140-Seminar-2, capacity: 236, location: Math Room 1", "name: SWEN3101-Lecture-2, capacity: 116, location: SLT1"], 
-            ["name: INFO2110-Tutorial-2, capacity: 37, location: C5", "name: INFO3155-Tutorial-6, capacity: 43, location: C3", "name: BIOC2014-Seminar-1, capacity: 19, location: Math Room 1", "name: INFO3110-Seminar-1, capacity: 262, location: Math Room 1", "name: COMP2340-Seminar-1, capacity: 177, location: ENG Comp Lab"], 
-            ["name: BIOC3013-Tutorial-5, capacity: 6, location: C5", "name: INFO2180-Tutorial-8, capacity: 19, location: C3", "name: INFO3155-Tutorial-1, capacity: 43, location: C3", "name: INFO2110-Tutorial-4, capacity: 37, location: C2", "name: PHYS2351-Tutorial-3, capacity: 9, location: C2"], 
-            ["name: BIOC3013-Tutorial-4, capacity: 6, location: C5", "name: INFO2180-Tutorial-7, capacity: 19, location: C3", "name: INFO3110-Tutorial-6, capacity: 49, location: C3", "name: INFO2100-Lab-1, capacity: 148, location: C2", "name: CHEM2210-Seminar-1, capacity: 32, location: Math Room 1"],
-            ["name: MICR1011-Tutorial-2, capacity: 6, location: C5", "name: COMP3220-Tutorial-4, capacity: 25, location: C3", "name: PHYS2351-Lab-1, capacity: 9, location: C2", "name: INFO2180-Lab-1, capacity: 19, location: C2"], 
-            ["name: BIOC3013-Tutorial-3, capacity: 6, location: C5", "name: INFO2180-Tutorial-6, capacity: 19, location: C3", "name: INFO3110-Tutorial-3, capacity: 49, location: C3", "name: PHYS2351-Lecture-1, capacity: 34, location: SLT3", "name: INFO2110-Lecture-2, capacity: 114, location: SLT2"], 
-            ["name: BIOC3013-Tutorial-2, capacity: 6, location: C5", "name: INFO2180-Tutorial-5, capacity: 19, location: C3", "name: INFO3110-Tutorial-4, capacity: 49, location: C3", "name: CHEM2210-Lecture-2, capacity: 32, location: SLT2", "name: INFO2180-Lecture-1, capacity: 114, location: SLT2"], 
-            ["name: MICR1011-Tutorial-4, capacity: 6, location: C5", "name: COMP3220-Tutorial-3, capacity: 25, location: C3", "name: PHYS2351-Tutorial-1, capacity: 9, location: C2", "name: INFO2100-Lab-2, capacity: 148, location: C2"], 
-            ["name: MICR1011-Tutorial-5, capacity: 6, location: C5", "name: COMP3220-Tutorial-2, capacity: 25, location: C3", "name: COMP1126-Seminar-1, capacity: 250, location: ENG Comp Lab", "name: COMP2211-Seminar-2, capacity: 122, location: ENG Comp Lab", "name: INFO3110-Lecture-2, capacity: 262, location: SLT3"], 
-            ["name: MICR1011-Tutorial-3, capacity: 6, location: C5", "name: COMP3220-Tutorial-1, capacity: 25, location: C3", "name: COMP1210-Seminar-2, capacity: 250, location: ENG Comp Lab", "name: COMP2171-Seminar-1, capacity: 122, location: ENG Comp Lab", "name: GEOL3002-Lecture-1, capacity: 9, location: SLT3", "name: COMP2211-Lecture-1, capacity: 122, location: SLT1", "name: CHEM1901-Lecture-1, capacity: 43, location: SLT1", "name: COMP1161-Lecture-2, capacity: 250, location: SLT1"],
-            ["name: COMP1210-Tutorial-3, capacity: 81, location: C5", "name: INFO3105-Tutorial-4, capacity: 57, location: C3", "name: COMP3101-Tutorial-3, capacity: 59, location: C3", "name: COMP2211-Tutorial-8, capacity: 18, location: C3", "name: GEOL2202-Tutorial-2, capacity: 7, location: C2"], 
-            ["name: COMP1210-Tutorial-4, capacity: 81, location: C5", "name: INFO3105-Tutorial-5, capacity: 57, location: C3", "name: COMP3101-Tutorial-2, capacity: 59, location: C3", "name: COMP2211-Tutorial-6, capacity: 18, location: C3", "name: GEOL2202-Tutorial-1, capacity: 7, location: C2"], 
-            ["name: MICR1011-Tutorial-1, capacity: 6, location: C5", "name: SWEN3101-Tutorial-4, capacity: 30, location: C3", "name: COMP3220-Lecture-2, capacity: 136, location: SLT1"], 
-            ["name: INFO3180-Tutorial-4, capacity: 85, location: C5", "name: INFO2180-Tutorial-3, capacity: 19, location: C3", "name: GEOG1131-Seminar-1, capacity: 44, location: ENG Comp Lab", "name: COMP1127-Lecture-2, capacity: 250, location: SLT3", "name: CHEM2310-Lecture-1, capacity: 32, location: SLT2", "name: PHYS2351-Lecture-2, capacity: 34, location: SLT2"], 
-            ["name: MATH2404-Tutorial-5, capacity: 9, location: C5", "name: SWEN3920-Tutorial-7, capacity: 22, location: C3", "name: MATH1141-Tutorial-1, capacity: 5, location: C2", "name: COMP2190-Lecture-1, capacity: 236, location: SLT3"], 
-            ["name: MATH2404-Tutorial-4, capacity: 9, location: C5", "name: SWEN3920-Tutorial-5, capacity: 22, location: C3", "name: COMP1127-Tutorial-6, capacity: 46, location: C3", "name: COMP3901-Tutorial-1, capacity: 103, location: C3", "name: COMP2140-Tutorial-2, capacity: 153, location: C2", "name: INFO3180-Seminar-1, capacity: 262, location: Math Room 2"],
-            ["name: MATH1141-Tutorial-6, capacity: 5, location: C5", "name: SWEN3920-Tutorial-4, capacity: 22, location: C3", "name: COMP3901-Tutorial-5, capacity: 103, location: C3", "name: COMP2211-Tutorial-1, capacity: 18, location: C2", "name: MATH1141-Tutorial-2, capacity: 5, location: C2", "name: PHYS2351-Tutorial-5, capacity: 9, location: C2", "name: COMP3161-Lecture-2, capacity: 398, location: SLT1"],
-            ["name: MATH1141-Tutorial-4, capacity: 5, location: C5", "name: COMP3901-Tutorial-3, capacity: 103, location: C3", "name: SWEN3920-Tutorial-1, capacity: 22, location: C3", "name: CHEM2310-Tutorial-1, capacity: 21, location: C2", "name: COMP1220-Tutorial-5, capacity: 54, location: C2", "name: COMP3901-Lab-1, capacity: 103, location: C2", "name: COMP2201-Lecture-2, capacity: 122, location: SLT2", "name: MATH1141-Lecture-1, capacity: 26, location: SLT1", "name: COMP3161-Lecture-1, capacity: 398, location: SLT1"],
-            ["name: INFO3180-Tutorial-2, capacity: 85, location: C5", "name: INFO2180-Tutorial-1, capacity: 19, location: C3", "name: BIOC2014-Lecture-2, capacity: 19, location: SLT2", "name: INFO3170-Lecture-1, capacity: 262, location: SLT1", "name: COMP2140-Lecture-1, capacity: 236, location: SLT1"], 
-            ["name: SWEN3145-Tutorial-2, capacity: 30, location: C3"], 
-            ["name: INFO3180-Tutorial-3, capacity: 85, location: C5", "name: INFO2180-Tutorial-2, capacity: 19, location: C3", "name: BIOC2014-Lecture-1, capacity: 19, location: SLT1", "name: SWEN3101-Lecture-3, capacity: 116, location: SLT1", "name: COMP2340-Lecture-2, capacity: 177, location: SLT1"], 
-            ["name: MATH2404-Tutorial-3, capacity: 9, location: C5", "name: SWEN3920-Tutorial-6, capacity: 22, location: C3", "name: COMP1127-Tutorial-4, capacity: 46, location: C3", "name: COMP3161-Tutorial-3, capacity: 172, location: C3", "name: COMP2171-Tutorial-5, capacity: 23, location: C2", "name: MATH1141-Seminar-1, capacity: 26, location: Math Room 2"], 
-            ["name: MATH2404-Tutorial-2, capacity: 9, location: C5", "name: SWEN3145-Tutorial-1, capacity: 30, location: C3", "name: COMP1127-Tutorial-1, capacity: 46, location: C3", "name: COMP3161-Tutorial-1, capacity: 172, location: C3", "name: COMP2171-Tutorial-2, capacity: 23, location: C2", "name: MATH1141-Lecture-3, capacity: 26, location: SLT2"], 
-            ["name: MATH2404-Tutorial-1, capacity: 9, location: C5", "name: SWEN3920-Tutorial-3, capacity: 22, location: C3", "name: COMP1126-Tutorial-6, capacity: 46, location: C3", "name: COMP2190-Lab-1, capacity: 307, location: C2", "name: MATH2404-Lab-2, capacity: 9, location: C2", "name: BIOC3013-Seminar-1, capacity: 23, location: C2", "name: INFO3170-Seminar-2, capacity: 262, location: Math Room 1", "name: SWEN3920-Seminar-2, capacity: 116, location: Math Room 1", "name: COMP2340-Lecture-1, capacity: 177, location: SLT3", "name: MATH2404-Lecture-1, capacity: 33, location: SLT1", "name: BIOC2014-Lecture-3, capacity: 19, location: SLT1", "name: INFO3155-Lecture-1, capacity: 262, location: SLT1", "name: INFO2110-Lecture-1, capacity: 114, location: SLT1"],
-            ["name: SWEN3145-Tutorial-3, capacity: 30, location: C3"],
-            ["name: SWEN3145-Tutorial-4, capacity: 30, location: C5", "name: COMP1161-Tutorial-5, capacity: 65, location: C3", "name: INFO3155-Tutorial-8, capacity: 43, location: C3", "name: COMP3161-Tutorial-2, capacity: 172, location: C3", "name: COMP2171-Tutorial-7, capacity: 23, location: C2", "name: COMP1220-Tutorial-1, capacity: 54, location: C2"],
-            ["name: COMP1210-Tutorial-1, capacity: 81, location: C5", "name: COMP3220-Tutorial-5, capacity: 25, location: C3", "name: INFO3155-Tutorial-3, capacity: 43, location: C3", "name: COMP2211-Tutorial-7, capacity: 18, location: C3", "name: GEOL2202-Lab-1, capacity: 7, location: C2"], 
-            ["name: COMP1210-Tutorial-2, capacity: 81, location: C5", "name: INFO3105-Tutorial-3, capacity: 57, location: C3", "name: COMP3101-Tutorial-1, capacity: 59, location: C3", "name: COMP2211-Tutorial-2, capacity: 18, location: C3", "name: COMP1161-Lab-1, capacity: 65, location: C2", "name: SWEN3145-Seminar-1, capacity: 116, location: Math Room 1", "name: INFO3155-Seminar-1, capacity: 262, location: Math Room 1", "name: COMP1161-Lecture-1, capacity: 250, location: SLT3", "name: COMP2171-Lecture-2, capacity: 122, location: SLT1"],
-            ["name: INFO3180-Tutorial-1, capacity: 85, location: C5", "name: INFO2100-Tutorial-1, capacity: 148, location: C3", "name: BIOC3013-Lecture-1, capacity: 23, location: SLT1", "name: INFO2180-Lecture-3, capacity: 114, location: SLT1", "name: CHEM2210-Lecture-1, capacity: 32, location: SLT1"],
-            ["name: COMP3220-Tutorial-6, capacity: 25, location: C3"],
-            ["name: CHEM2210-Tutorial-6, capacity: 5, location: C5", "name: SWEN3920-Tutorial-2, capacity: 22, location: C3", "name: COMP1127-Tutorial-2, capacity: 46, location: C3", "name: COMP3901-Tutorial-2, capacity: 103, location: C3", "name: MATH1141-Tutorial-3, capacity: 5, location: C2", "name: COMP2171-Tutorial-6, capacity: 23, location: C2"],
-            ["name: CHEM2210-Tutorial-8, capacity: 5, location: C5", "name: COMP1126-Tutorial-7, capacity: 46, location: C3", "name: CHEM1901-Tutorial-4, capacity: 11, location: C2", "name: COMP2171-Tutorial-4, capacity: 23, location: C2", "name: MICR1011-Seminar-1, capacity: 25, location: Math Room 1", "name: CHEM1901-Lecture-2, capacity: 43, location: SLT1", "name: COMP1127-Lecture-1, capacity: 250, location: SLT1"], 
-            ["name: CHEM2210-Tutorial-9, capacity: 5, location: C5", "name: COMP1126-Tutorial-4, capacity: 46, location: C3", "name: CHEM1901-Tutorial-1, capacity: 11, location: C2", "name: COMP2171-Tutorial-3, capacity: 23, location: C2", "name: COMP1210-Lecture-1, capacity: 250, location: SLT2", "name: COMP3220-Lecture-1, capacity: 136, location: SLT2", "name: MICR1011-Lecture-1, capacity: 25, location: SLT1"], 
-            [], 
-            ["name: COMP3220-Tutorial-7, capacity: 25, location: C3"],
-            ["name: CHEM2210-Tutorial-7, capacity: 5, location: C5", "name: COMP1126-Tutorial-5, capacity: 46, location: C3", "name: COMP2171-Tutorial-1, capacity: 23, location: C2", "name: COMP3220-Lab-2, capacity: 25, location: C2", "name: COMP1126-Lecture-3, capacity: 250, location: SLT2", "name: INFO3105-Lecture-3, capacity: 262, location: SLT2", "name: SWEN3145-Lecture-1, capacity: 116, location: SLT1"],
-            ["name: GEOG1131-Tutorial-1, capacity: 57, location: C5", "name: INFO2180-Tutorial-4, capacity: 19, location: C3", "name: INFO3110-Tutorial-1, capacity: 49, location: C3", "name: GEOL3002-Tutorial-1, capacity: 6, location: C3", "name: COMP2190-Tutorial-1, capacity: 307, location: C2", "name: MATH2404-Lab-1, capacity: 9, location: C2", "name: COMP2190-Lecture-2, capacity: 236, location: SLT2"],
-            ["name: CHEM1901-Tutorial-5, capacity: 11, location: C5", "name: COMP1161-Tutorial-4, capacity: 65, location: C3", "name: INFO3110-Tutorial-7, capacity: 49, location: C3", "name: COMP2211-Tutorial-4, capacity: 18, location: C3", "name: COMP1220-Seminar-1, capacity: 250, location: C2"],
-            [],
-            ["name: BIOC2014-Tutorial-4, capacity: 6, location: C3"], 
-            ["name: INFO3170-Tutorial-1, capacity: 114, location: C5", "name: COMP1161-Tutorial-2, capacity: 65, location: C3", "name: COMP2201-Tutorial-1, capacity: 79, location: C3", "name: COMP1220-Tutorial-2, capacity: 54, location: C2", "name: COMP3101-Seminar-1, capacity: 136, location: Math Room 1"], 
-            ["name: INFO3170-Tutorial-2, capacity: 114, location: C5", "name: COMP1161-Tutorial-3, capacity: 65, location: C3", "name: COMP2201-Tutorial-2, capacity: 79, location: C3", "name: COMP1220-Tutorial-3, capacity: 54, location: C2", "name: COMP3161-Seminar-1, capacity: 398, location: Math Room 1", "name: COMP2211-Seminar-1, capacity: 122, location: ENG Comp Lab", "name: GEOL2202-Lecture-1, capacity: 34, location: SLT3", "name: COMP3901-Lecture-1, capacity: 398, location: SLT1", "name: COMP2201-Lecture-1, capacity: 122, location: SLT1"], 
-            ["name: INFO3170-Tutorial-3, capacity: 114, location: C5", "name: COMP1161-Tutorial-1, capacity: 65, location: C3", "name: COMP2211-Tutorial-9, capacity: 18, location: C3", "name: GEOL2202-Tutorial-4, capacity: 7, location: C2", "name: COMP3101-Lecture-1, capacity: 136, location: SLT3"],
-            [], ["name: INFO3105-Tutorial-6, capacity: 57, location: C3"], 
-            ["name: CHEM2210-Tutorial-5, capacity: 5, location: C5", "name: COMP1126-Tutorial-2, capacity: 46, location: C3", "name: COMP2201-Lab-1, capacity: 79, location: C2", "name: COMP3220-Lab-1, capacity: 25, location: C2", "name: COMP1126-Lecture-2, capacity: 250, location: SLT2", "name: INFO3110-Lecture-1, capacity: 262, location: SLT2", "name: SWEN3920-Lecture-2, capacity: 116, location: SLT1"],
-            ["name: CHEM1901-Tutorial-3, capacity: 11, location: C5", "name: COMP1127-Tutorial-7, capacity: 46, location: C3", "name: INFO3110-Tutorial-5, capacity: 49, location: C3", "name: COMP2211-Tutorial-5, capacity: 18, location: C3", "name: COMP1210-Seminar-1, capacity: 250, location: C2", "name: SWEN3920-Seminar-1, capacity: 116, location: ENG Comp Lab", "name: INFO3110-Lecture-3, capacity: 262, location: SLT3", "name: COMP1126-Lecture-1, capacity: 250, location: SLT3"],
-            ["name: CHEM1901-Tutorial-2, capacity: 11, location: C5", "name: COMP1127-Tutorial-3, capacity: 46, location: C3", "name: INFO3110-Tutorial-2, capacity: 49, location: C3", "name: COMP2211-Tutorial-3, capacity: 18, location: C3", "name: COMP1127-Seminar-1, capacity: 250, location: Math Room 1", "name: SWEN3920-Lecture-1, capacity: 116, location: SLT1", "name: INFO3180-Lecture-1, capacity: 262, location: SLT1", "name: COMP1127-Lecture-3, capacity: 250, location: SLT1"],
-            [], 
-            ["name: BIOC2014-Tutorial-3, capacity: 6, location: C3"],
-            ["name: CHEM2210-Tutorial-4, capacity: 5, location: C5", "name: COMP1126-Tutorial-3, capacity: 46, location: C3", "name: CHEM1901-Lab-2, capacity: 11, location: C2", "name: CHEM2310-Lab-2, capacity: 21, location: C2", "name: COMP1210-Lecture-2, capacity: 250, location: SLT1", "name: INFO3105-Lecture-2, capacity: 262, location: SLT1"],
-            ["name: CHEM2210-Tutorial-2, capacity: 5, location: C5", "name: BIOC3013-Tutorial-1, capacity: 6, location: C3", "name: INFO2110-Tutorial-3, capacity: 37, location: C2", "name: SWEN3145-Seminar-2, capacity: 116, location: Math Room 1", "name: CHEM2210-Seminar-2, capacity: 32, location: Math Room 1", "name: MATH1141-Lecture-2, capacity: 26, location: SLT2", "name: INFO2100-Lecture-1, capacity: 114, location: SLT1", "name: BIOC3013-Lecture-2, capacity: 23, location: SLT1"],
-            ["name: CHEM2210-Tutorial-3, capacity: 5, location: C5", "name: COMP1126-Tutorial-1, capacity: 46, location: C3", "name: CHEM1901-Lab-1, capacity: 11, location: C2", "name: CHEM2310-Lab-1, capacity: 21, location: C2"], 
-            [],
-            ["name: PHYS2351-Tutorial-4, capacity: 9, location: C3"],
-            ["name: GEOL2202-Tutorial-6, capacity: 7, location: C5", "name: INFO3155-Tutorial-7, capacity: 43, location: C3", "name: COMP2340-Tutorial-1, capacity: 46, location: C3", "name: SWEN3101-Tutorial-5, capacity: 30, location: C3"],
-            ["name: GEOL2202-Tutorial-5, capacity: 7, location: C5", "name: INFO3155-Tutorial-4, capacity: 43, location: C3", "name: COMP2340-Tutorial-2, capacity: 46, location: C3", "name: SWEN3101-Lecture-1, capacity: 116, location: SLT1"], 
-            ["name: CHEM2210-Tutorial-1, capacity: 5, location: C5", "name: MATH1141-Tutorial-7, capacity: 5, location: C3", "name: GEOG1131-Seminar-2, capacity: 44, location: C2", "name: COMP2171-Seminar-2, capacity: 122, location: Math Room 2", "name: GEOL3002-Seminar-1, capacity: 9, location: Math Room 1", "name: INFO2110-Seminar-1, capacity: 114, location: ENG Comp Lab", "name: GEOG1131-Lecture-1, capacity: 44, location: SLT3", "name: INFO2180-Lecture-2, capacity: 114, location: SLT2"],
-            []]
-    }
-        
-    # timeTable = [
-    #     ["name: BIOC3013-Lecture-2, capacity: 23, location: C5", "name: GEOL3002-Lecture-1, capacity: 9, location: C3", "name: MATH1141-Lecture-3, capacity: 26, location: C2"], ["name: COMP3801-Tutorial-3, capacity: 20, location : C3, name: COMP2140-Seminar-1, capacity: 119, location: SLT3"],
-    #     ["name: CHEM2310-Lecture-1, capacity: 32, location: Math Room 2", "name: GEOG1131-Lecture-1, capacity: 44, location: Math Room 1"], ["name: CHEM1901-Lecture-2, capacity: 43, location: ENG Comp Lab", "name: GEOL2202-Lecture-1, capacity: 34, location: SLT3", "name: PHYS2351-Lecture-2, capacity: 34, location: SLT2"], ["name: MICR1011-Lecture-1, capacity: 25, location: SLT1", "name: MATH2404-Lecture-1, capacity: 33, location: Physics Lab", "name: CHEM2210-Lecture-2, capacity: 32, location: GEOG Lab 3"],
-    #     ["name: MATH1151-Seminar-1, capacity: 30, location: Math Room 1, name: GEOG1131-Seminar-1, capacity: 18, location: GEOG Lecture RM 2"], ["name: MATH1151-Lecture-1, capacity: 30, location: Math Room 2, name: CHEM3010-Lecture-1, capacity: 16, location: Math Room 1"], ["name: GEOG1232-Lecture-1, capacity: 3, location: GEOG Lecture RM 1, name: COMP3220-tutorial-1, capacity: 36, location: CR1"], ["name: CHEM2111-Tutorial-1,capacity: 4, location: Math Room 2, name: COMP3912-Lecture-1, capacity: 72, location: C2"], ["name: PHYS1422-Lecture-1, capacity: 21, location: SLT3, name: MICR2211-Seminar-1, capacity: 19, location: GEOG Lab 3"],
-    #     ["name: INFO2180-Lecture-3, capacity: 114, location: GEOG Lecture RM 1", "name: INFO2100-Lecture-1, capacity: 114, location: GEOG Lab 2"], ["name: MATH3424-Lecture-1, capacity: 10, location: Math Room 2, name: CHEM3010-Lecture-1, capacity: 16, location: Math Room 1"],  ["name: CHEM2110-Tutorial-1, capacity: 32, location: C3, name: CHEM2402-Tutorial-2, capacity: 27, location: Math Room 2"], ["name: CHEM2402-Tutorial-1, capacity: 27, location: Math Room 1, name: COMP2140-Seminar-2, capacity: 119, location: SLT3"], ["name: COMP3912-Tutorial-1, capacity: 72, location: C2, name: COMP2140-Seminar-1, capacity: 119, location: SLT3"],
-    #     ["name: GEOG2233-Seminar-1, capacity: 19, location: GEOG Lecture 2, name: MATH3405-Lecture-1, capacity: 18, location: Math Room 1"], ["name: CHEM2310-Lecture-1, capacity: 55, location: C2"], ["name: PHYS2351-Lecture-1, capacity: 34, location: Math Room 1", "name: CHEM2210-Lecture-1, capacity: 32, location: ENG Comp Lab"], [""], ["name: CHEM2310-Tutorial-2, capacity: 21, location: SLT3", "name: BIOC2014-Lecture-2, capacity: 19, location: SLT2", "name: INFO2180-Lecture-2, capacity: 114, location: SLT1"],
-    #     ["name: GEOG1131-Seminar-2, capacity: 44, location: Physics Lab", "name: INFO3110-Lecture-2, capacity: 262, location: GEOG Lab 3"], ["name: CHEM2011-Lab-1, capacity: 48, location: GEOG Lab 2, name: COMP3702-Lecture-1, capacity: 24, location: CompCLR"], ["name: CHEM3010-Seminar-1,capacity: 16, location: Math Room 1, name: MICR1010-Lecture-1, capacity: 28, location: Math Room 2"], [""], ["name: CHEM2211-Lecture-1, capacity: 16, location: C3, name: COMP3702-Lecture-1, capacity: 24, location: SLT2"],
-    #     ["name: PHYS3341-Lecture-1, capacity: 14, location: Physics Lab"], ["name: COMP2211-Tutorial-1, capacity: 21, location: C3"], ["name: CHEM3010-Seminar-1,capacity: 16, location: Math Room 1"], [""], ["name: COMP2140-Seminar-2, capacity: 119, location: SLT3, name: CHEM2211-Lecture-1, capacity: 16, location: C3"],
-    #     ["name: PHYS3341-Lecture-1, capacity: 14, location: Physics Lab, name: GEOL1104-Lecture-1, capacity: 155, location: SLT2"], ["name: COMP3220-Seminar-1, capacity: 136, location: SLT3, name: COMP2171-Lab-1, capacity: 30, location: CLR"], ["name: COMP2171-Lab-2, capacity: 30, location: CLR"], [""], ["name: COMP2802-Lecture-1, capacity: 123, location: SLT3, name: CHEM2211-Lecture-1, capacity: 16, location: C3"],
-    #     ["name: COMP3410-Lecture-1, capacity: 14, location: COMPCLR, name: GEOL1104-Lecture-1, capacity: 155, location: SLT2"], ["name: GEOG3131-Lecture-1, capacity: 34, location: GEOG Lecture RM 2, name: COMP2171-Lab-1, capacity: 30, location: CLR"], ["name: COMP2171-Lab-2, capacity: 30, location: CLR"], ["name: COMP2140-Lecture-1, capacity: 119, location: SLT1"], ["name: ELET1405-Seminar-1, capacity: 20, location: Math Room 1, name: COMP2802-Lecture-1, capacity: 123, location: SLT3"],
-    #     ["name: MICR1010-Seminar-1, capacity: 28, location: ENG Comp Lab, name: GEOL1104-Lecture-1, capacity: 155, location: SLT2"], ["name: COMP2171-Lab-1, capacity: 30, location: CLR, name: GEOL1104-Lecture-1, capacity: 155, location: SLT2"], ["name: CHEM2111-Tutorial-1, capacity: 4, location: Math Room 1"], ["name: SWEN3101-Tutorial-1, capacity: 24, location: C2 name: GEOL2201-Seminar-1, capacity: 26, location: GEOG Lecture RM 1"], [" name: ELET2210-Tutorial-1, capacity: 19, location: C3, name: COMP2201-Seminar-1,capacity: 64, location: C2"],
-    #     ["name: MATH3424-Seminar-1, capacity: 10, location: Math Room 1, name: MICR1010-Seminar-1, capacity: 28, location: ENG Comp Lab"], ["name: GEOG3131-Lecture-2, capacity: 4, location: GEOG Lecture RM 2, name: COMP2171-Lab-1, capacity: 30, location: CLR"], ["name: GEOG3131-Tutorial-1, capacity: 4, location: GEOG Lecture RM 2, name: GEOL1104-Tutorial-1, capacity: 155, location: SLT2"], ["name: CHEM2011-Seminar-1, capacity: 37, location: GEOG Lab 2, name: PHYS1411-Seminar-1,capacity: 25, location: ENG Comp Lab"], ["name: COMP2201-Seminar-1,capacity: 64, location: C2, name: COMP3702-Lecture-1, capacity: 24, location: SLT2"],
-    #     ["name: CHEM2310-Tutorial-1, capacity: 5, location: C2"], ["name: ELET1405-Seminar-1, capacity: 20, location: GEOG Lab 2"], ["name: GEOL1104-Tutorial-1, capacity: 155, location: SLT2"], ["name: ELET1405-Seminar-2, capacity: 20, location: GEOG Lab 2"], ["name: COMP3702-Lecture-1, capacity: 24, location: SLT2"],
-    #     ["name: CHEM2310-Tutorial-1, capacity: 5, location: C2"], ["name: ELET1405-Seminar-1, capacity: 20, location: GEOG Lab 2"], ["name: BIOL2312-Tutorial-1, capacity: 7, location: CompCLR name: MATH2407-Seminar-1, capacity: 22, location: C3"], ["name: ELET1405-Seminar-2, capacity: 20, location: GEOG Lab 2"], ["name: GEOG2231-Lecture-1, capacity: 26, location: GEOG Lecture RM 1"]
-    # ]
-    
-    # timetable = {}
-    # for day in days_of_week:
-    #     timetable[day] = {}
-    #     for time_slot in time_slots:
-    #         timetable[day][time_slot] = ""
-
-    # for i, day in enumerate(days_of_week):
-    #     for j, time_slot in enumerate(time_slots):
-    #         index = i + j * len(days_of_week)
-    #         if index < len(timeTable):
-    #             timetable[day][time_slot] = timeTable[index][0]
-                
+    try:
+        filepath = os.path.join(os.getcwd(), 'mock_tables.txt')
+        with open(filepath, 'r') as file:
+            data = file.read()
+    except IOError:
+        print("An error occurred while reading the file.")
+    else:
+        print(data)
+        timeTables = json.loads(data)
     
     timetables_dict = {}
     for key, timetable in timeTables.items():
@@ -366,11 +195,79 @@ def download_timetable():
             for j, time_slot in enumerate(time_slots):
                 index = j * len(days_of_week) + i
                 if index < len(timetable):
-                    timetable_dict[day][time_slot] = timetable[index][0]
+                    if timetable[index] == []:
+                        timetable_dict[day][time_slot] = ' '
+                    else:    
+                        timetable_dict[day][time_slot] = timetable[index]
         timetables_dict[key] = timetable_dict
+       
+    
+        return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
+    
+    # timetables_dict = {}
+    # for key, timetable in timeTables.items():
+    #     timetable_dict = {}
+    #     for i, day in enumerate(days_of_week):
+    #         timetable_dict[day] = {}
+    #         for j, time_slot in enumerate(time_slots):
+    #             index = j * len(days_of_week) + i
+    #             if index < len(timetable):
+    #                 timetable_dict[day][time_slot] = timetable[index][0]
+    #     timetables_dict[key] = timetable_dict
+    
+    # timetables_dict = {}
+    # for key, timetable in timeTables.items():
+    #     timetable_dict = {}
+    #     for i, day in enumerate(days_of_week):
+    #         timetable_dict[day] = {}
+    #         for j, time_slot in enumerate(time_slots):
+    #             index = j * len(days_of_week) + i
+    #             if index < len(timetable):
+    #                 if timetable[index] == []:
+    #                     timetable_dict[day][time_slot] = ' '
+    #                 else:    
+    #                     timetable_dict[day][time_slot] = timetable[index]
+    #     timetables_dict[key] = timetable_dict
+        
+    # try:
+    #     filepath = os.path.join(os.getcwd(), 'mock_tables.txt')
+    #     with open(filepath, 'r') as file:
+    #         data = file.read()
+    # except IOError:
+    #     print("An error occurred while reading the file.")
+    # else:
+    #     timeTables = json.loads(data)
+    
+
+        
+    # try:
+    #     filepath = os.path.join(os.getcwd(), 'mock_tables.txt')
+    #     with open(filepath, 'r') as file:
+    #         data = file.read()
+    # except IOError:
+    #     print("An error occurred while reading the file.")
+    # else:
+    #     timeTables = json.loads(data)
+    #     timetables_dict = {}
+    # for key, timetable in timeTables.items():
+    #     timetable_dict = {}
+    #     for i, day in enumerate(days_of_week):
+    #         timetable_dict[day] = {}
+    #         for j, time_slot in enumerate(time_slots):
+    #             index = j * len(days_of_week) + i
+    #             if index < len(timetable):
+    #                 if timetable[index] == []:
+    #                     timetable_dict[day][time_slot] = ' '
+    #                 else:    
+    #                     timetable_dict[day][time_slot] = timetable[index]
+    #     timetables_dict[key] = timetable_dict
+       
+    
+    #     return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
+
 
     # return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
-    return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
+    # return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
 
 
 
@@ -626,4 +523,6 @@ def write_course_data_to_csv(course_data, filename):
 # Example usage
 # course_data = generate_course_data(course_code)
 # write_course_data_to_csv(course_data, 'form_registration.csv')
+
+
     
