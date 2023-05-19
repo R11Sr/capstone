@@ -210,11 +210,6 @@ time_slots = [
     "16:00", "17:00", "18:00", "19:00", "20:00"
 ]
 
-def read_file(file_path):
-    with open(file_path, 'r') as file:
-        file_contents = file.read()
-    return file_contents
-
 @app.route('/download')
 def download_timetable():
 
