@@ -1,7 +1,8 @@
 from app import app
 from flask import render_template, flash, request, send_file, redirect, url_for
-from app.forms import CourseForm, ParameterForm
+from app.forms import CourseForm, ParameterForm, CSVUploads
 from flask import Flask, render_template, make_response, Response
+from werkzeug.utils import secure_filename
 from flask import make_response
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -12,6 +13,7 @@ import requests
 import random
 import csv
 import json
+from collections import OrderedDict
 
 ###
 # Routing for UWI Time and Place application.
@@ -121,12 +123,12 @@ def paramsform():
     pform = ParameterForm()
 
     if pform.validate_on_submit():
-        population_size = int(pform.population_size.data[0])
+        population_size = int(pform.population_size.data)
         p_crossover =  0.9
         p_mutation = 0.1
-        max_generations = int(pform.max_generations.data[0])
-        optimal_fitness_score = int(pform.optimal_fitness_score.data[0])  
-        max_runtime = int(pform.max_runtime.data[0])
+        max_generations = int(pform.max_generations.data)
+        optimal_fitness_score = int(pform.optimal_fitness_score.data)  
+        max_runtime = int(pform.max_runtime.data)
 
         flash('Parameters Set Successfully!', 'success')
 
@@ -135,7 +137,7 @@ def paramsform():
         flash(f'p_mutation: {p_mutation}')
         flash(f'max_generations: {max_generations}')
         flash(f'optimal_fitness_score: {optimal_fitness_score}')
-        flash(f'max_runtime: {max_runtime}') """
+        flash(f'max_runtime: {max_runtime}')  """
     
     flash_errors(pform)
 
@@ -159,6 +161,45 @@ def paramsform():
 
     return render_template('setParameters.html', form=pform)
 
+@app.route('/fileuploads', methods=['GET', 'POST'])
+def csvfileuploads():
+    csvform = CSVUploads()
+    
+    if csvform.validate_on_submit():
+        student_reg_file = csvform.student_reg_file.data
+
+        student_reg_filename=secure_filename(student_reg_file.filename)
+        student_reg_file.save(generate_output_csvfile_path(student_reg_filename,'Student_Registration_files'))
+
+        lect_pref_file = csvform.lect_pref_file.data
+
+        lect_pref_filename=secure_filename(lect_pref_file.filename)
+        lect_pref_file.save(generate_output_csvfile_path(lect_pref_filename,'Lecturer_Preferences_files'))
+        
+
+        flash('Files Uploaded Successfully!', 'success')
+
+        """ flash(f'population_size : {population_size}')
+        flash(f'p_crossover: {p_crossover}')
+        flash(f'p_mutation: {p_mutation}')
+        flash(f'max_generations: {max_generations}')
+        flash(f'optimal_fitness_score: {optimal_fitness_score}')
+        flash(f'max_runtime: {max_runtime}')  """
+    
+    flash_errors(csvform) 
+    
+    clear_form(csvform)
+    
+
+    return render_template('uploadcsvfiles.html', form=csvform)
+
+#output_csvfolder = 'StudentRegistrationfiles'  # Specify the output folder as "timetables"
+   
+def generate_output_csvfile_path(file_name,output_csvfolder):
+        
+        foldercsv_path = os.path.join(app.root_path, output_csvfolder)  
+        os.makedirs(foldercsv_path, exist_ok=True)
+        return os.path.join(foldercsv_path, file_name)
 
 
 days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -176,7 +217,25 @@ def read_file(file_path):
 
 @app.route('/download')
 def download_timetable():
+
+    # timeTable = [ 
     
+    #     ["1"], ["2"], ["3"], ["4"], ["5"],
+    #     ["6"], ["7"], ["8"], ["9"], ["10"],
+    #     ["11"], ["12"], ["13"], ["14"], ["15"],
+    #     ["16"], ["17"], ["18"], ["19"], ["20"],
+    #     ["21"], ["22"], ["23"], ["24"], ["25"],
+    #     ["26"], ["27"], ["28"], ["29"], ["30"],
+    #     ["31"], ["32"], ["33"], ["34"], ["35"],
+    #     ["36"], ["37"], ["38"], ["39"], ["40"],
+    #     ["41"], ["42"], ["43"], ["44"], ["45"],
+    #     ["46"], ["47"], ["48"], ["49"], ["50"],
+    #     ["51"], ["52"], ["53"], ["54"], ["55"],
+    #     ["56"], ["57"], ["58"], ["59"], ["60"],
+    #     ["61"], ["62"], ["63"], ["64"], ["65"]
+    # ]
+
+
     try:
         filepath = os.path.join(os.getcwd(), 'mock_tables.txt')
         with open(filepath, 'r') as file:
@@ -184,8 +243,71 @@ def download_timetable():
     except IOError:
         print("An error occurred while reading the file.")
     else:
-        print(data)
         timeTables = json.loads(data)
+        
+
+    """ timeTables = {
+        '0' : [
+        ["1"], ["2"], ["3"], ["4"], ["5"],
+        ["6"], ["7"], ["8"], ["9"], ["10"],
+        ["11"], ["12"], ["13"], ["14"], ["15"],
+        ["16"], ["17"], ["18"], ["19"], ["20"],
+        ["21"], ["22"], ["23"], ["24"], ["25"],
+        ["26"], ["27"], ["28"], ["29"], ["30"],
+        ["31"], ["32"], ["33"], ["34"], ["35"],
+        ["36"], ["37"], ["38"], ["39"], ["40"],
+        ["41"], ["42"], ["43"], ["44"], ["45"],
+        ["46"], ["47"], ["48"], ["49"], ["50"],
+        ["51"], ["52"], ["53"], ["54"], ["55"],
+        ["56"], ["57"], ["58"], ["59"], ["60"],
+        ["61"], ["62"], ["63"], ["64"], ["65"]] , 
+        
+        '1' : [
+        ["1"], ["2"], ["3"], ["4"], ["5"],
+        ["6"], ["7"], ["8"], ["9"], ["10"],
+        ["11"], ["12"], ["13"], ["14"], ["15"],
+        ["16"], ["17"], ["18"], ["19"], ["20"],
+        ["21"], ["22"], ["23"], ["24"], ["25"],
+        ["26"], ["27"], ["28"], ["29"], ["30"],
+        ["31"], ["32"], ["33"], ["34"], ["35"],
+        ["36"], ["37"], ["38"], ["39"], ["40"],
+        ["41"], ["42"], ["43"], ["44"], ["45"],
+        ["46"], ["47"], ["48"], ["49"], ["50"],
+        ["51"], ["52"], ["53"], ["54"], ["55"],
+        ["56"], ["57"], ["58"], ["59"], ["60"],
+        ["61"], ["62"], ["63"], ["64"], ["65"]] , 
+        
+        '2' : [
+        ["1"], ["2"], ["3"], ["4"], ["5"],
+        ["6"], ["7"], ["8"], ["9"], ["10"],
+        ["11"], ["12"], ["13"], ["14"], ["15"],
+        ["16"], ["17"], ["18"], ["19"], ["20"],
+        ["21"], ["22"], ["23"], ["24"], ["25"],
+        ["26"], ["27"], ["28"], ["29"], ["30"],
+        ["31"], ["32"], ["33"], ["34"], ["35"],
+        ["36"], ["37"], ["38"], ["39"], ["40"],
+        ["41"], ["42"], ["43"], ["44"], ["45"],
+        ["46"], ["47"], ["48"], ["49"], ["50"],
+        ["51"], ["52"], ["53"], ["54"], ["55"],
+        ["56"], ["57"], ["58"], ["59"], ["60"],
+        ["61"], ["62"], ["63"], ["64"], ["65"]]  
+        
+    }  """
+        
+
+    
+    # timetable = {}
+    # for day in days_of_week:
+    #     timetable[day] = {}
+    #     for time_slot in time_slots:
+    #         timetable[day][time_slot] = ""
+
+    # for i, day in enumerate(days_of_week):
+    #     for j, time_slot in enumerate(time_slots):
+    #         index = i + j * len(days_of_week)
+    #         if index < len(timeTable):
+    #             timetable[day][time_slot] = timeTable[index][0]
+                
     
     timetables_dict = {}
     for key, timetable in timeTables.items():
