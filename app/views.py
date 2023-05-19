@@ -209,187 +209,41 @@ time_slots = [
     "16:00", "17:00", "18:00", "19:00", "20:00"
 ]
 
-def read_file(file_path):
-    with open(file_path, 'r') as file:
-        file_contents = file.read()
-    return file_contents
-
-
 @app.route('/download')
 def download_timetable():
-
-    # timeTable = [ 
-    
-    #     ["1"], ["2"], ["3"], ["4"], ["5"],
-    #     ["6"], ["7"], ["8"], ["9"], ["10"],
-    #     ["11"], ["12"], ["13"], ["14"], ["15"],
-    #     ["16"], ["17"], ["18"], ["19"], ["20"],
-    #     ["21"], ["22"], ["23"], ["24"], ["25"],
-    #     ["26"], ["27"], ["28"], ["29"], ["30"],
-    #     ["31"], ["32"], ["33"], ["34"], ["35"],
-    #     ["36"], ["37"], ["38"], ["39"], ["40"],
-    #     ["41"], ["42"], ["43"], ["44"], ["45"],
-    #     ["46"], ["47"], ["48"], ["49"], ["50"],
-    #     ["51"], ["52"], ["53"], ["54"], ["55"],
-    #     ["56"], ["57"], ["58"], ["59"], ["60"],
-    #     ["61"], ["62"], ["63"], ["64"], ["65"]
-    # ]
-
 
     try:
         filepath = os.path.join(os.getcwd(), 'mock_tables.txt')
         with open(filepath, 'r') as file:
             data = file.read()
+            timeTables = json.loads(data)
     except IOError:
         print("An error occurred while reading the file.")
+    # except json.JSONDecodeError as e:
+    #     print("Error decoding JSON data:")
+    #     print("Error message:", str(e))
+    #     print("Error occurred at line:", e.lineno)
+    #     print("Error occurred at column:", e.colno)
+    #     print("Offending JSON snippet:", data[e.pos-95:e.pos+95])
     else:
-        timeTables = json.loads(data)
-        
+        timetables_dict = {}
+        for key, timetable in timeTables.items():
+            timetable_dict = {}
+            for i, day in enumerate(days_of_week):
+                timetable_dict[day] = {}
+                for j, time_slot in enumerate(time_slots):
+                    index = j * len(days_of_week) + i
+                    if index < len(timetable):
+                        if timetable[index] == []:
+                            timetable_dict[day][time_slot] = ' '
+                        else:
+                            timetable_dict[day][time_slot] = timetable[index]
+            timetables_dict[key] = timetable_dict
 
-    """ timeTables = {
-        '0' : [
-        ["1"], ["2"], ["3"], ["4"], ["5"],
-        ["6"], ["7"], ["8"], ["9"], ["10"],
-        ["11"], ["12"], ["13"], ["14"], ["15"],
-        ["16"], ["17"], ["18"], ["19"], ["20"],
-        ["21"], ["22"], ["23"], ["24"], ["25"],
-        ["26"], ["27"], ["28"], ["29"], ["30"],
-        ["31"], ["32"], ["33"], ["34"], ["35"],
-        ["36"], ["37"], ["38"], ["39"], ["40"],
-        ["41"], ["42"], ["43"], ["44"], ["45"],
-        ["46"], ["47"], ["48"], ["49"], ["50"],
-        ["51"], ["52"], ["53"], ["54"], ["55"],
-        ["56"], ["57"], ["58"], ["59"], ["60"],
-        ["61"], ["62"], ["63"], ["64"], ["65"]] , 
-        
-        '1' : [
-        ["1"], ["2"], ["3"], ["4"], ["5"],
-        ["6"], ["7"], ["8"], ["9"], ["10"],
-        ["11"], ["12"], ["13"], ["14"], ["15"],
-        ["16"], ["17"], ["18"], ["19"], ["20"],
-        ["21"], ["22"], ["23"], ["24"], ["25"],
-        ["26"], ["27"], ["28"], ["29"], ["30"],
-        ["31"], ["32"], ["33"], ["34"], ["35"],
-        ["36"], ["37"], ["38"], ["39"], ["40"],
-        ["41"], ["42"], ["43"], ["44"], ["45"],
-        ["46"], ["47"], ["48"], ["49"], ["50"],
-        ["51"], ["52"], ["53"], ["54"], ["55"],
-        ["56"], ["57"], ["58"], ["59"], ["60"],
-        ["61"], ["62"], ["63"], ["64"], ["65"]] , 
-        
-        '2' : [
-        ["1"], ["2"], ["3"], ["4"], ["5"],
-        ["6"], ["7"], ["8"], ["9"], ["10"],
-        ["11"], ["12"], ["13"], ["14"], ["15"],
-        ["16"], ["17"], ["18"], ["19"], ["20"],
-        ["21"], ["22"], ["23"], ["24"], ["25"],
-        ["26"], ["27"], ["28"], ["29"], ["30"],
-        ["31"], ["32"], ["33"], ["34"], ["35"],
-        ["36"], ["37"], ["38"], ["39"], ["40"],
-        ["41"], ["42"], ["43"], ["44"], ["45"],
-        ["46"], ["47"], ["48"], ["49"], ["50"],
-        ["51"], ["52"], ["53"], ["54"], ["55"],
-        ["56"], ["57"], ["58"], ["59"], ["60"],
-        ["61"], ["62"], ["63"], ["64"], ["65"]]  
-        
-    }  """
-        
-
-    
-    # timetable = {}
-    # for day in days_of_week:
-    #     timetable[day] = {}
-    #     for time_slot in time_slots:
-    #         timetable[day][time_slot] = ""
-
-    # for i, day in enumerate(days_of_week):
-    #     for j, time_slot in enumerate(time_slots):
-    #         index = i + j * len(days_of_week)
-    #         if index < len(timeTable):
-    #             timetable[day][time_slot] = timeTable[index][0]
-                
-    
-    timetables_dict = {}
-    for key, timetable in timeTables.items():
-        timetable_dict = {}
-        for i, day in enumerate(days_of_week):
-            timetable_dict[day] = {}
-            for j, time_slot in enumerate(time_slots):
-                index = j * len(days_of_week) + i
-                if index < len(timetable):
-                    if timetable[index] == []:
-                        timetable_dict[day][time_slot] = ' '
-                    else:    
-                        timetable_dict[day][time_slot] = timetable[index]
-        timetables_dict[key] = timetable_dict
-       
-    
         return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
-    
-    # timetables_dict = {}
-    # for key, timetable in timeTables.items():
-    #     timetable_dict = {}
-    #     for i, day in enumerate(days_of_week):
-    #         timetable_dict[day] = {}
-    #         for j, time_slot in enumerate(time_slots):
-    #             index = j * len(days_of_week) + i
-    #             if index < len(timetable):
-    #                 timetable_dict[day][time_slot] = timetable[index][0]
-    #     timetables_dict[key] = timetable_dict
-    
-    # timetables_dict = {}
-    # for key, timetable in timeTables.items():
-    #     timetable_dict = {}
-    #     for i, day in enumerate(days_of_week):
-    #         timetable_dict[day] = {}
-    #         for j, time_slot in enumerate(time_slots):
-    #             index = j * len(days_of_week) + i
-    #             if index < len(timetable):
-    #                 if timetable[index] == []:
-    #                     timetable_dict[day][time_slot] = ' '
-    #                 else:    
-    #                     timetable_dict[day][time_slot] = timetable[index]
-    #     timetables_dict[key] = timetable_dict
+
+    # return "Error occurred while processing timetable data."
         
-    # try:
-    #     filepath = os.path.join(os.getcwd(), 'mock_tables.txt')
-    #     with open(filepath, 'r') as file:
-    #         data = file.read()
-    # except IOError:
-    #     print("An error occurred while reading the file.")
-    # else:
-    #     timeTables = json.loads(data)
-    
-
-        
-    # try:
-    #     filepath = os.path.join(os.getcwd(), 'mock_tables.txt')
-    #     with open(filepath, 'r') as file:
-    #         data = file.read()
-    # except IOError:
-    #     print("An error occurred while reading the file.")
-    # else:
-    #     timeTables = json.loads(data)
-    #     timetables_dict = {}
-    # for key, timetable in timeTables.items():
-    #     timetable_dict = {}
-    #     for i, day in enumerate(days_of_week):
-    #         timetable_dict[day] = {}
-    #         for j, time_slot in enumerate(time_slots):
-    #             index = j * len(days_of_week) + i
-    #             if index < len(timetable):
-    #                 if timetable[index] == []:
-    #                     timetable_dict[day][time_slot] = ' '
-    #                 else:    
-    #                     timetable_dict[day][time_slot] = timetable[index]
-    #     timetables_dict[key] = timetable_dict
-       
-    
-    #     return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
-
-
-    # return render_template('timetable.html', timetable=timetable, days_of_week=days_of_week, time_slots=time_slots)
-    # return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
 
 
 
@@ -419,7 +273,7 @@ def download_pdf():
 
 
 
-# UWI Time and Place Functions
+## UWI Time and Place Functions ##
 output_folder = 'timetables'  # Specify the output folder as "timetables"
 
 # Global counter for keeping track of downloaded files
