@@ -88,15 +88,13 @@ def form():
     #     flash(error_message, 'error')
     
 
-    # try:
+    #try:
+    #    course_data = generate_course_data(course_code,first)
+     #   write_course_data_to_csv(course_data, 'form_registration.csv')
         
-    #     course_data = generate_course_data(course_code)
-                
-    #     write_course_data_to_csv(course_data, 'form_registration.csv')
-        
-    # except Exception as e:
-    #     error_message = f"An error occurred while writing to the CSV file: {str(e)}"
-    #     flash(error_message, 'error')
+    #except Exception as e:
+    #    error_message = f"An error occurred while writing to the CSV file: {str(e)}"
+     #   flash(error_message, 'error')
         
 
     file_exists3 = os.path.exists('lecturer_pref.csv')
@@ -239,6 +237,7 @@ def download_timetable():
                             timetable_dict[day][time_slot] = timetable[index]
             timetables_dict[key] = timetable_dict
 
+
         return render_template('time.html', timetables=timetables_dict, days_of_week=days_of_week, time_slots=time_slots)
 
     # return "Error occurred while processing timetable data."
@@ -333,47 +332,135 @@ def generate_values(total):
     
     return values
 
-def generate_course_data(course_code):
+
+def generate_course_data(course_code, max_count):
+    coreSem1Value_counts_dict = {
+        course_code: random.randint(116, 256)
+    }
+
+    for value, count in coreSem1Value_counts_dict.items():
+        lecture_count = random.randint(1, min(3, count))
+        tutorial_max = max_count - lecture_count
+        tutorial_count = random.randint(1, min(9, tutorial_max))
+        tutorial_sum = 0
+        tutorial_numbers = []
+        while tutorial_sum < count and len(tutorial_numbers) < tutorial_count:
+            num = random.randint(0, min(40, tutorial_max))
+            if tutorial_sum + num <= count:
+                tutorial_sum += num
+                tutorial_numbers.append(num)
+        lecture_sum = 0
+        lecture_numbers = []
+        while lecture_sum < count and len(lecture_numbers) < lecture_count:
+            num = random.randint(0, min(50, count - lecture_sum))
+            lecture_sum += num
+            lecture_numbers.append(num)
+        if count > 1:
+            add_seminar_or_lab = random.choice(["Seminar", "Lab"])
+            if add_seminar_or_lab == "Seminar":
+                seminar_max = max_count - lecture_count - tutorial_count
+                seminar_count = random.randint(1, min(2, seminar_max))
+                seminar_sum = 0
+                seminar_numbers = []
+                while seminar_sum < count and len(seminar_numbers) < seminar_count:
+                    num = random.randint(0, min(40, seminar_max))
+                    if seminar_sum + num <= count:
+                        seminar_sum += num
+                        seminar_numbers.append(num)
+                while lecture_count + tutorial_count + seminar_count > max_count or seminar_sum > count:
+                    if seminar_count > 1:
+                        seminar_count -= 1
+                        seminar_numbers = seminar_numbers[:-1]
+                        seminar_sum = sum(seminar_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                coreSem1Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Seminar': list(seminar_numbers),
+                }
+            else:
+                lab_max = min(max_count - lecture_count - tutorial_count, 100)
+                lab_count = random.randint(1, min(2, lab_max))
+                lab_sum = 0
+                lab_numbers = []
+                while lab_sum < count and len(lab_numbers) < lab_count:
+                    num = random.randint(0, min(40, lab_max))
+                    if lab_sum + num <= count:
+                        lab_sum += num
+                        lab_numbers.append(num)
+                while lecture_count + tutorial_count + lab_count > max_count or lab_sum > count:
+                    if lab_count > 1:
+                        lab_count -= 1
+                        lab_numbers = lab_numbers[:-1]
+                        lab_sum = sum(lab_numbers)
+                    elif tutorial_count > 1:
+                        tutorial_count -= 1
+                    elif lecture_count > 1:
+                        lecture_count -= 1
+                coreSem1Value_counts_dict[value] = {
+                    'count': count,
+                    'Lecture': lecture_numbers,
+                    'Tutorial': tutorial_numbers,
+                    'Lab': list(lab_numbers),
+                }
+        else:
+            lecture_numbers = list(np.random.randint(0, min(50, lecture_count), size=lecture_count)) if lecture_count > 2 else list(np.random.randint(0, 100, size=lecture_count))
+            while sum(lecture_numbers) > count:
+                lecture_numbers.pop()
+            coreSem1Value_counts_dict[value] = {
+                'count': count,
+                'Lecture': lecture_numbers,
+                'Tutorial': tutorial_numbers,
+            }
+
+    # Print out the updated coreSem1Value_counts_dict
+    print("This is for:", course_code)
+    print("Updated coreSem1Value_counts_dict:")
+    for value, data in coreSem1Value_counts_dict.items():
+        print(value, ":", data)
+
+
+#Shantay's version
+
+#  def generate_course_data(course_code):
+#     count = random.randint(116, 256)
+#     semorlab = ['Seminar', 'Lab']
+#     semorlab = random.choice(semorlab)
+
+
+
+#     session_types = {
+#         'Lecture': [],
+#         'Tutorial': [],
+#         'Lab': [],
+#         'Seminar': []
+#     }
+
+#     # Generate random numbers for Lecture
+#     lecture_count = random.randint(1, 3)
+#     for _ in range(lecture_count):
+#         lecnumber = random.randint(31, count)
+#         session_types['Lecture'].append(lecnumber)
+
+#     # Generate random numbers for Tutorial
+#     tutorial_count = random.randint(1, 9)
+#     for _ in range(tutorial_count):
+#         tutnumber = random.randint(30, count)
+#         session_types['Tutorial'].append(tutnumber)
+
+#     # Generate random numbers for Lab
+#     lab_count = random.randint(1, 2)
+#     for _ in range(lab_count):
+#         labnumber = random.randint(30, count)
+#         session_types[semorlab].append(labnumber)
     
-    # count = random.randint(116, 256)
-    # print(count)
-
-    # session_types = {
-    #     'Lecture': [],
-    #     'Tutorial': [],
-    #     'Lab': [],
-    #     'Seminar': []
-    # }
-
-    # # Generate random numbers for Lecture
-    # lecture_count = random.randint(1, min(3, count))
-    # lecture_numbers = random.sample(range(1, count + 1), lecture_count)
-    # if sum(lecture_numbers) > count:
-    #     lecture_numbers = random.sample(lecture_numbers, count)
-    # session_types['Lecture'] = lecture_numbers
-
-    # # Generate random numbers for Tutorial
-    # tutorial_count = random.randint(1, min(9, count - sum(session_types['Lecture'])))
-    # tutorial_numbers = random.sample(range(1, count + 1), tutorial_count)
-    # if sum(tutorial_numbers) > count:
-    #     tutorial_numbers = random.sample(tutorial_numbers, count - sum(session_types['Lecture']))
-    # session_types['Tutorial'] = tutorial_numbers
-
-    # # Generate random numbers for Lab
-    # lab_count = random.randint(1, min(3, count - sum(session_types['Lecture']) - sum(session_types['Tutorial'])))
-    # lab_numbers = random.sample(range(1, count + 1), lab_count)
-    # if sum(lab_numbers) > count:
-    #     lab_numbers = random.sample(lab_numbers, count - sum(session_types['Lecture']) - sum(session_types['Tutorial']))
-    # session_types['Lab'] = lab_numbers
-
-    # # Generate random numbers for Seminar
-    # seminar_count = count - sum(session_types['Lecture']) - sum(session_types['Tutorial']) - sum(session_types['Lab'])
-    # seminar_numbers = random.sample(range(1, count + 1), seminar_count)
-    # if sum(seminar_numbers) > count:
-    #     seminar_numbers = random.sample(seminar_numbers, count - sum(session_types['Lecture']) - sum(session_types['Tutorial']) - sum(session_types['Lab']))
-    # session_types['Seminar'] = seminar_numbers
-
-    # print(session_types)
+#     print(session_types)
+ 
+    
     
  
     
@@ -473,7 +560,7 @@ def generate_course_data(course_code):
     #     session_data = random.sample(range(1, 1000), session_count)
     #     course_data[course_code][session_type] = session_data
     
-    return course_data
+    return course_code
 
     
 
@@ -496,8 +583,8 @@ def write_course_data_to_csv(course_data, filename):
             writer2.writerow([course_code, count, lecture, tutorial, lab, seminar])
 
 # Example usage
-# course_data = generate_course_data(course_code)
-# write_course_data_to_csv(course_data, 'form_registration.csv')
+ #course_data = generate_course_data(course_code)
+ #write_course_data_to_csv(course_data, 'form_registration.csv')
 
 
     
