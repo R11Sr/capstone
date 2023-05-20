@@ -70,7 +70,7 @@ def form():
         error_message = f"An error occurred while writing to the CSV file: {str(e)}"
         flash(error_message, 'error')
     
-    # file_exists2 = os.path.exists('form_registration.csv')
+    file_exists2 = os.path.exists('form_registration.csv')
     # values = generate_values(first)
     # try:
     #     values = generate_values(first)
@@ -88,13 +88,13 @@ def form():
     #     flash(error_message, 'error')
     
 
-    #try:
-    #    course_data = generate_course_data(course_code,first)
-     #   write_course_data_to_csv(course_data, 'form_registration.csv')
+    try:
+        course_data = generate_course_data(course_code,first)
+        write_course_data_to_csv2(course_data, 'form_registration.csv')
         
-    #except Exception as e:
-    #    error_message = f"An error occurred while writing to the CSV file: {str(e)}"
-     #   flash(error_message, 'error')
+    except Exception as e:
+        error_message = f"An error occurred while writing to the CSV file: {str(e)}"
+        flash(error_message, 'error')
         
 
     file_exists3 = os.path.exists('lecturer_pref.csv')
@@ -560,7 +560,7 @@ def generate_course_data(course_code, max_count):
     #     session_data = random.sample(range(1, 1000), session_count)
     #     course_data[course_code][session_type] = session_data
     
-    return course_code
+    return coreSem1Value_counts_dict
 
     
 
@@ -581,6 +581,31 @@ def write_course_data_to_csv(course_data, filename):
             seminar = course_info.get('Seminar', [])
             
             writer2.writerow([course_code, count, lecture, tutorial, lab, seminar])
+
+def write_course_data_to_csv2(course_data, filename):
+    file_exists = os.path.isfile(filename)
+    
+    with open(filename, 'a', newline='') as csvfile:
+        writer13 = csv.writer(csvfile)
+        
+        if not file_exists:
+            writer13.writerow(['Course Code', 'Count', 'Lecture', 'Tutorial', 'Lab', 'Seminar'])
+        
+        for course_code, course_info in course_data.items():
+            count = course_info['count']
+            lecture = course_info.get('Lecture', [])
+            tutorial = course_info.get('Tutorial', [])
+            lab = course_info.get('Lab', [])
+            seminar = course_info.get('Seminar', [])
+
+            
+            writer13.writerow([course_code, ':', {
+    'count': count,
+    'Lecture': lecture,
+    'Tutorial': tutorial,
+    'Lab': lab,
+    'Seminar': seminar
+}])
 
 # Example usage
  #course_data = generate_course_data(course_code)
