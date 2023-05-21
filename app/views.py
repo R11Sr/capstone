@@ -599,13 +599,13 @@ def write_course_data_to_csv2(course_data, filename):
             seminar = course_info.get('Seminar', [])
 
             
-            writer13.writerow([course_code, ':', {
+            writer13.writerow([course_code +' ' + ':' + ' ' + str({
     'count': count,
     'Lecture': lecture,
     'Tutorial': tutorial,
     'Lab': lab,
     'Seminar': seminar
-}])
+})])
 
 # Example usage
  #course_data = generate_course_data(course_code)
